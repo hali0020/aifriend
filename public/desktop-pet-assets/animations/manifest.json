@@ -1,0 +1,484 @@
+{
+  "version": 1,
+  "states": {
+    "happy": {
+      "loop": true,
+      "pingPong": true,
+      "canvas": {
+        "width": 577,
+        "height": 768
+      },
+      "frameCount": 6,
+      "frames": [
+        {
+          "path": "happy/frame-00.png",
+          "durationMs": 650
+        },
+        {
+          "path": "happy/frame-01.png",
+          "durationMs": 100
+        },
+        {
+          "path": "happy/frame-02.png",
+          "durationMs": 120
+        },
+        {
+          "path": "happy/frame-03.png",
+          "durationMs": 90
+        },
+        {
+          "path": "happy/frame-04.png",
+          "durationMs": 90
+        },
+        {
+          "path": "happy/frame-05.png",
+          "durationMs": 420
+        }
+      ]
+    },
+    "angry": {
+      "loop": true,
+      "pingPong": true,
+      "canvas": {
+        "width": 577,
+        "height": 768
+      },
+      "frameCount": 6,
+      "frames": [
+        {
+          "path": "angry/frame-00.png",
+          "durationMs": 650
+        },
+        {
+          "path": "angry/frame-01.png",
+          "durationMs": 100
+        },
+        {
+          "path": "angry/frame-02.png",
+          "durationMs": 120
+        },
+        {
+          "path": "angry/frame-03.png",
+          "durationMs": 90
+        },
+        {
+          "path": "angry/frame-04.png",
+          "durationMs": 90
+        },
+        {
+          "path": "angry/frame-05.png",
+          "durationMs": 480
+        }
+      ]
+    },
+    "shy": {
+      "loop": true,
+      "pingPong": true,
+      "canvas": {
+        "width": 576,
+        "height": 768
+      },
+      "frameCount": 6,
+      "frames": [
+        {
+          "path": "shy/frame-00.png",
+          "durationMs": 650
+        },
+        {
+          "path": "shy/frame-01.png",
+          "durationMs": 110
+        },
+        {
+          "path": "shy/frame-02.png",
+          "durationMs": 130
+        },
+        {
+          "path": "shy/frame-03.png",
+          "durationMs": 100
+        },
+        {
+          "path": "shy/frame-04.png",
+          "durationMs": 100
+        },
+        {
+          "path": "shy/frame-05.png",
+          "durationMs": 520
+        }
+      ]
+    },
+    "surprised": {
+      "loop": true,
+      "pingPong": true,
+      "canvas": {
+        "width": 576,
+        "height": 768
+      },
+      "frameCount": 7,
+      "frames": [
+        {
+          "path": "surprised/frame-00.png",
+          "durationMs": 650
+        },
+        {
+          "path": "surprised/frame-01.png",
+          "durationMs": 80
+        },
+        {
+          "path": "surprised/frame-02.png",
+          "durationMs": 90
+        },
+        {
+          "path": "surprised/frame-03.png",
+          "durationMs": 110
+        },
+        {
+          "path": "surprised/frame-04.png",
+          "durationMs": 80
+        },
+        {
+          "path": "surprised/frame-05.png",
+          "durationMs": 80
+        },
+        {
+          "path": "surprised/frame-06.png",
+          "durationMs": 420
+        }
+      ]
+    },
+    "sad": {
+      "loop": true,
+      "pingPong": true,
+      "canvas": {
+        "width": 576,
+        "height": 768
+      },
+      "frameCount": 6,
+      "frames": [
+        {
+          "path": "sad/frame-00.png",
+          "durationMs": 650
+        },
+        {
+          "path": "sad/frame-01.png",
+          "durationMs": 110
+        },
+        {
+          "path": "sad/frame-02.png",
+          "durationMs": 130
+        },
+        {
+          "path": "sad/frame-03.png",
+          "durationMs": 100
+        },
+        {
+          "path": "sad/frame-04.png",
+          "durationMs": 100
+        },
+        {
+          "path": "sad/frame-05.png",
+          "durationMs": 560
+        }
+      ]
+    },
+    "smug": {
+      "loop": true,
+      "pingPong": true,
+      "canvas": {
+        "width": 576,
+        "height": 768
+      },
+      "frameCount": 6,
+      "frames": [
+        {
+          "path": "smug/frame-00.png",
+          "durationMs": 650
+        },
+        {
+          "path": "smug/frame-01.png",
+          "durationMs": 100
+        },
+        {
+          "path": "smug/frame-02.png",
+          "durationMs": 120
+        },
+        {
+          "path": "smug/frame-03.png",
+          "durationMs": 90
+        },
+        {
+          "path": "smug/frame-04.png",
+          "durationMs": 90
+        },
+        {
+          "path": "smug/frame-05.png",
+          "durationMs": 520
+        }
+      ]
+    },
+    "thinking": {
+      "loop": true,
+      "pingPong": true,
+      "canvas": {
+        "width": 576,
+        "height": 768
+      },
+      "frameCount": 7,
+      "frames": [
+        {
+          "path": "thinking/frame-00.png",
+          "durationMs": 650
+        },
+        {
+          "path": "thinking/frame-01.png",
+          "durationMs": 90
+        },
+        {
+          "path": "thinking/frame-02.png",
+          "durationMs": 100
+        },
+        {
+          "path": "thinking/frame-03.png",
+          "durationMs": 130
+        },
+        {
+          "path": "thinking/frame-04.png",
+          "durationMs": 90
+        },
+        {
+          "path": "thinking/frame-05.png",
+          "durationMs": 90
+        },
+        {
+          "path": "thinking/frame-06.png",
+          "durationMs": 650
+        }
+      ]
+    },
+    "deadpan": {
+      "loop": true,
+      "pingPong": true,
+      "canvas": {
+        "width": 576,
+        "height": 768
+      },
+      "frameCount": 6,
+      "frames": [
+        {
+          "path": "deadpan/frame-00.png",
+          "durationMs": 650
+        },
+        {
+          "path": "deadpan/frame-01.png",
+          "durationMs": 100
+        },
+        {
+          "path": "deadpan/frame-02.png",
+          "durationMs": 120
+        },
+        {
+          "path": "deadpan/frame-03.png",
+          "durationMs": 90
+        },
+        {
+          "path": "deadpan/frame-04.png",
+          "durationMs": 90
+        },
+        {
+          "path": "deadpan/frame-05.png",
+          "durationMs": 600
+        }
+      ]
+    },
+    "sleepy": {
+      "loop": true,
+      "pingPong": true,
+      "canvas": {
+        "width": 576,
+        "height": 768
+      },
+      "frameCount": 7,
+      "frames": [
+        {
+          "path": "sleepy/frame-00.png",
+          "durationMs": 650
+        },
+        {
+          "path": "sleepy/frame-01.png",
+          "durationMs": 100
+        },
+        {
+          "path": "sleepy/frame-02.png",
+          "durationMs": 110
+        },
+        {
+          "path": "sleepy/frame-03.png",
+          "durationMs": 130
+        },
+        {
+          "path": "sleepy/frame-04.png",
+          "durationMs": 100
+        },
+        {
+          "path": "sleepy/frame-05.png",
+          "durationMs": 100
+        },
+        {
+          "path": "sleepy/frame-06.png",
+          "durationMs": 650
+        }
+      ]
+    },
+    "excited": {
+      "loop": true,
+      "pingPong": true,
+      "canvas": {
+        "width": 576,
+        "height": 768
+      },
+      "frameCount": 8,
+      "frames": [
+        {
+          "path": "excited/frame-00.png",
+          "durationMs": 650
+        },
+        {
+          "path": "excited/frame-01.png",
+          "durationMs": 75
+        },
+        {
+          "path": "excited/frame-02.png",
+          "durationMs": 85
+        },
+        {
+          "path": "excited/frame-03.png",
+          "durationMs": 105
+        },
+        {
+          "path": "excited/frame-04.png",
+          "durationMs": 75
+        },
+        {
+          "path": "excited/frame-05.png",
+          "durationMs": 75
+        },
+        {
+          "path": "excited/frame-06.png",
+          "durationMs": 75
+        },
+        {
+          "path": "excited/frame-07.png",
+          "durationMs": 500
+        }
+      ]
+    },
+    "confused": {
+      "loop": true,
+      "pingPong": true,
+      "canvas": {
+        "width": 576,
+        "height": 768
+      },
+      "frameCount": 6,
+      "frames": [
+        {
+          "path": "confused/frame-00.png",
+          "durationMs": 650
+        },
+        {
+          "path": "confused/frame-01.png",
+          "durationMs": 100
+        },
+        {
+          "path": "confused/frame-02.png",
+          "durationMs": 120
+        },
+        {
+          "path": "confused/frame-03.png",
+          "durationMs": 90
+        },
+        {
+          "path": "confused/frame-04.png",
+          "durationMs": 90
+        },
+        {
+          "path": "confused/frame-05.png",
+          "durationMs": 560
+        }
+      ]
+    },
+    "panicked": {
+      "loop": true,
+      "pingPong": true,
+      "canvas": {
+        "width": 576,
+        "height": 768
+      },
+      "frameCount": 8,
+      "frames": [
+        {
+          "path": "panicked/frame-00.png",
+          "durationMs": 650
+        },
+        {
+          "path": "panicked/frame-01.png",
+          "durationMs": 75
+        },
+        {
+          "path": "panicked/frame-02.png",
+          "durationMs": 85
+        },
+        {
+          "path": "panicked/frame-03.png",
+          "durationMs": 105
+        },
+        {
+          "path": "panicked/frame-04.png",
+          "durationMs": 75
+        },
+        {
+          "path": "panicked/frame-05.png",
+          "durationMs": 75
+        },
+        {
+          "path": "panicked/frame-06.png",
+          "durationMs": 75
+        },
+        {
+          "path": "panicked/frame-07.png",
+          "durationMs": 560
+        }
+      ]
+    },
+    "idle": {
+      "loop": true,
+      "pingPong": true,
+      "canvas": {
+        "width": 576,
+        "height": 768
+      },
+      "frameCount": 5,
+      "frames": [
+        {
+          "path": "idle/frame-00.png",
+          "durationMs": 1500
+        },
+        {
+          "path": "idle/frame-01.png",
+          "durationMs": 70
+        },
+        {
+          "path": "idle/frame-02.png",
+          "durationMs": 65
+        },
+        {
+          "path": "idle/frame-03.png",
+          "durationMs": 55
+        },
+        {
+          "path": "idle/frame-04.png",
+          "durationMs": 80
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>克里斯提娜 · 桌宠</title>
+  <style>
+    html,body{width:100%;height:100%;margin:0;background:transparent;font-family:"Segoe UI","Microsoft YaHei",sans-serif;color:#26362e}
+    body{display:grid;place-items:center;overflow:hidden}
+    .pet-boot{box-sizing:border-box;width:calc(100% - 16px);min-height:150px;margin:8px;padding:22px;border:1px solid #ffffffc7;border-radius:24px;background:linear-gradient(145deg,#f7f9f5f2,#e6eee9f0);box-shadow:0 14px 34px #253a2d2e;text-align:center}
+    .pet-boot[hidden]{display:none}.pet-boot strong,.pet-boot span{display:block}.pet-boot span{margin-top:8px;color:#6f7d75;font-size:13px;line-height:1.6}
+    .pet-boot button{margin-top:15px;border:1px solid #5d7066;border-radius:11px;background:#fff;padding:8px 13px;color:#3c4d44}
+  </style>
+</head>
+<body>
+  <main class="pet-boot" id="petBoot" role="status" aria-live="polite">
+    <strong id="petBootTitle">克里斯提娜正在启动</strong>
+    <span id="petBootDetail">正在连接本地主界面…</span>
+    <button id="petBootMain" type="button">打开主界面</button>
+  </main>
+  <script src="/desktop-pet-bootstrap.js"></script>
+  <script type="module" src="/desktop-pet-entry.js"></script>
+</body>
+</html>

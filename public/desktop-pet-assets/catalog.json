@@ -1,0 +1,417 @@
+{
+  "version": 1,
+  "character": "克里斯提娜（牧濑红莉西）",
+  "reference": "makise-kurisu-chibi-01-joyful-wave.png",
+  "assets": [
+    {
+      "id": 1,
+      "state": "joyful-wave",
+      "file": "makise-kurisu-chibi-01-joyful-wave.png"
+    },
+    {
+      "id": 2,
+      "state": "angry-arms-crossed",
+      "file": "makise-kurisu-chibi-02-angry-arms-crossed.png"
+    },
+    {
+      "id": 3,
+      "state": "shy-flustered",
+      "file": "makise-kurisu-chibi-03-shy-flustered.png"
+    },
+    {
+      "id": 4,
+      "state": "surprised",
+      "file": "makise-kurisu-chibi-04-surprised.png"
+    },
+    {
+      "id": 5,
+      "state": "sad-restrained",
+      "file": "makise-kurisu-chibi-05-sad-restrained.png"
+    },
+    {
+      "id": 6,
+      "state": "proud-explaining",
+      "file": "makise-kurisu-chibi-06-proud-explaining.png"
+    },
+    {
+      "id": 7,
+      "state": "thinking",
+      "file": "makise-kurisu-chibi-07-thinking.png"
+    },
+    {
+      "id": 8,
+      "state": "deadpan-speechless",
+      "file": "makise-kurisu-chibi-08-deadpan-speechless.png"
+    },
+    {
+      "id": 9,
+      "state": "sleepy-yawn",
+      "file": "makise-kurisu-chibi-09-sleepy-yawn.png"
+    },
+    {
+      "id": 10,
+      "state": "excited-double-fists",
+      "file": "makise-kurisu-chibi-10-excited-double-fists.png"
+    },
+    {
+      "id": 11,
+      "state": "confused-questioning",
+      "file": "makise-kurisu-chibi-11-confused-questioning.png"
+    },
+    {
+      "id": 12,
+      "state": "panicked-flustered",
+      "file": "makise-kurisu-chibi-12-panicked-flustered.png"
+    },
+    {
+      "id": 13,
+      "state": "research-reading",
+      "file": "makise-kurisu-chibi-13-research-reading.png"
+    },
+    {
+      "id": 14,
+      "state": "laptop-typing",
+      "file": "makise-kurisu-chibi-14-laptop-typing.png"
+    },
+    {
+      "id": 15,
+      "state": "coffee-break",
+      "file": "makise-kurisu-chibi-15-coffee-break.png"
+    },
+    {
+      "id": 16,
+      "state": "warning-point",
+      "file": "makise-kurisu-chibi-16-warning-point.png"
+    },
+    {
+      "id": 17,
+      "state": "running-sideways",
+      "file": "makise-kurisu-chibi-17-running-sideways.png"
+    },
+    {
+      "id": 18,
+      "state": "sitting-idle",
+      "file": "makise-kurisu-chibi-18-sitting-idle.png"
+    },
+    {
+      "id": 19,
+      "state": "peeking-edge",
+      "file": "makise-kurisu-chibi-19-peeking-edge.png"
+    },
+    {
+      "id": 20,
+      "state": "dragged-floating",
+      "file": "makise-kurisu-chibi-20-dragged-floating.png"
+    },
+    {
+      "id": 21,
+      "state": "listening-headphones",
+      "file": "makise-kurisu-chibi-21-listening-headphones.png"
+    },
+    {
+      "id": 22,
+      "state": "speaking-explaining",
+      "file": "makise-kurisu-chibi-22-speaking-explaining.png"
+    },
+    {
+      "id": 23,
+      "state": "game-observer",
+      "file": "makise-kurisu-chibi-23-game-observer.png"
+    },
+    {
+      "id": 24,
+      "state": "screenshot-analysis",
+      "file": "makise-kurisu-chibi-24-screenshot-analysis.png"
+    },
+    {
+      "id": 25,
+      "state": "walking-sideways",
+      "file": "makise-kurisu-chibi-25-walking-sideways.png"
+    },
+    {
+      "id": 26,
+      "state": "jumping-up",
+      "file": "makise-kurisu-chibi-26-jumping-up.png"
+    },
+    {
+      "id": 27,
+      "state": "landing-crouch",
+      "file": "makise-kurisu-chibi-27-landing-crouch.png"
+    },
+    {
+      "id": 28,
+      "state": "sleeping-curled",
+      "file": "makise-kurisu-chibi-28-sleeping-curled.png"
+    },
+    {
+      "id": 29,
+      "state": "hanging-one-hand",
+      "file": "makise-kurisu-chibi-29-hanging-one-hand.png"
+    },
+    {
+      "id": 30,
+      "state": "climbing-up",
+      "file": "makise-kurisu-chibi-30-climbing-up.png"
+    },
+    {
+      "id": 31,
+      "state": "knocked-over-prone",
+      "file": "makise-kurisu-chibi-31-knocked-over-prone.png"
+    },
+    {
+      "id": 32,
+      "state": "recovering-stand",
+      "file": "makise-kurisu-chibi-32-recovering-stand.png"
+    },
+    {
+      "id": 33,
+      "state": "sitting-window-edge",
+      "file": "makise-kurisu-chibi-33-sitting-window-edge.png"
+    },
+    {
+      "id": 34,
+      "state": "balancing-window-edge",
+      "file": "makise-kurisu-chibi-34-balancing-window-edge.png"
+    },
+    {
+      "id": 35,
+      "state": "slipping-window-edge",
+      "file": "makise-kurisu-chibi-35-slipping-window-edge.png"
+    },
+    {
+      "id": 36,
+      "state": "catching-edge-both-hands",
+      "file": "makise-kurisu-chibi-36-catching-edge-both-hands.png"
+    },
+    {
+      "id": 37,
+      "state": "knocking-on-glass",
+      "file": "makise-kurisu-chibi-37-knocking-on-glass.png"
+    },
+    {
+      "id": 38,
+      "state": "wiping-screen-cloth",
+      "file": "makise-kurisu-chibi-38-wiping-screen-cloth.png"
+    },
+    {
+      "id": 39,
+      "state": "pressing-screen-button",
+      "file": "makise-kurisu-chibi-39-pressing-screen-button.png"
+    },
+    {
+      "id": 40,
+      "state": "presenting-blank-notice",
+      "file": "makise-kurisu-chibi-40-presenting-blank-notice.png"
+    },
+    {
+      "id": 41,
+      "state": "examining-test-tube",
+      "file": "makise-kurisu-chibi-41-examining-test-tube.png"
+    },
+    {
+      "id": 42,
+      "state": "recording-experiment",
+      "file": "makise-kurisu-chibi-42-recording-experiment.png"
+    },
+    {
+      "id": 43,
+      "state": "experiment-surprise",
+      "file": "makise-kurisu-chibi-43-experiment-surprise.png"
+    },
+    {
+      "id": 44,
+      "state": "successful-experiment",
+      "file": "makise-kurisu-chibi-44-successful-experiment.png"
+    },
+    {
+      "id": 45,
+      "state": "reaching-toward-screen",
+      "file": "makise-kurisu-chibi-45-reaching-toward-screen.png"
+    },
+    {
+      "id": 46,
+      "state": "peering-through-magnifier",
+      "file": "makise-kurisu-chibi-46-peering-through-magnifier.png"
+    },
+    {
+      "id": 47,
+      "state": "tapping-foot-impatient",
+      "file": "makise-kurisu-chibi-47-tapping-foot-impatient.png"
+    },
+    {
+      "id": 48,
+      "state": "facepalm-exasperated",
+      "file": "makise-kurisu-chibi-48-facepalm-exasperated.png"
+    },
+    {
+      "id": 49,
+      "state": "small-applause",
+      "file": "makise-kurisu-chibi-49-small-applause.png"
+    },
+    {
+      "id": 50,
+      "state": "eureka-finger-raised",
+      "file": "makise-kurisu-chibi-50-eureka-finger-raised.png"
+    },
+    {
+      "id": 51,
+      "state": "defensive-palms-out",
+      "file": "makise-kurisu-chibi-51-defensive-palms-out.png"
+    },
+    {
+      "id": 52,
+      "state": "relieved-hand-on-chest",
+      "file": "makise-kurisu-chibi-52-relieved-hand-on-chest.png"
+    },
+    {
+      "id": 53,
+      "state": "waiting-checking-watch",
+      "file": "makise-kurisu-chibi-53-waiting-checking-watch.png"
+    },
+    {
+      "id": 54,
+      "state": "quiet-shushing",
+      "file": "makise-kurisu-chibi-54-quiet-shushing.png"
+    },
+    {
+      "id": 55,
+      "state": "curious-hands-behind-back",
+      "file": "makise-kurisu-chibi-55-curious-hands-behind-back.png"
+    },
+    {
+      "id": 56,
+      "state": "offering-coffee",
+      "file": "makise-kurisu-chibi-56-offering-coffee.png"
+    },
+    {
+      "id": 57,
+      "state": "small-shrug-palms-up",
+      "file": "makise-kurisu-chibi-57-small-shrug-palms-up.png"
+    },
+    {
+      "id": 58,
+      "state": "determined-fist-at-chest",
+      "file": "makise-kurisu-chibi-58-determined-fist-at-chest.png"
+    },
+    {
+      "id": 59,
+      "state": "gentle-reassuring-hands-clasped",
+      "file": "makise-kurisu-chibi-59-gentle-reassuring-hands-clasped.png"
+    },
+    {
+      "id": 60,
+      "state": "skeptical-side-eye",
+      "file": "makise-kurisu-chibi-60-skeptical-side-eye.png"
+    },
+    {
+      "id": 61,
+      "state": "embarrassed-hair-tuck",
+      "file": "makise-kurisu-chibi-61-embarrassed-hair-tuck.png"
+    },
+    {
+      "id": 62,
+      "state": "startled-hands-up",
+      "file": "makise-kurisu-chibi-62-startled-hands-up.png"
+    },
+    {
+      "id": 63,
+      "state": "focused-listening-hand-to-ear",
+      "file": "makise-kurisu-chibi-63-focused-listening-hand-to-ear.png"
+    },
+    {
+      "id": 64,
+      "state": "dismissive-wave-away",
+      "file": "makise-kurisu-chibi-64-dismissive-wave-away.png"
+    },
+    {
+      "id": 65,
+      "state": "reluctant-thumbs-up",
+      "file": "makise-kurisu-chibi-65-reluctant-thumbs-up.png"
+    },
+    {
+      "id": 66,
+      "state": "restrained-giggle-hand-over-mouth",
+      "file": "makise-kurisu-chibi-66-restrained-giggle-hand-over-mouth.png"
+    },
+    {
+      "id": 67,
+      "state": "worried-fidgeting-fingers",
+      "file": "makise-kurisu-chibi-67-worried-fidgeting-fingers.png"
+    },
+    {
+      "id": 68,
+      "state": "unimpressed-thumbs-down",
+      "file": "makise-kurisu-chibi-68-unimpressed-thumbs-down.png"
+    },
+    {
+      "id": 69,
+      "state": "alert-over-shoulder-glance",
+      "file": "makise-kurisu-chibi-69-alert-over-shoulder-glance.png"
+    },
+    {
+      "id": 70,
+      "state": "relaxed-arms-overhead-stretch",
+      "file": "makise-kurisu-chibi-70-relaxed-arms-overhead-stretch.png"
+    },
+    {
+      "id": 71,
+      "state": "polite-small-bow",
+      "file": "makise-kurisu-chibi-71-polite-small-bow.png"
+    },
+    {
+      "id": 72,
+      "state": "counting-on-fingers",
+      "file": "makise-kurisu-chibi-72-counting-on-fingers.png"
+    },
+    {
+      "id": 73,
+      "state": "single-fist-pump-victory",
+      "file": "makise-kurisu-chibi-73-single-fist-pump-victory.png"
+    },
+    {
+      "id": 74,
+      "state": "cautious-tiptoe-step",
+      "file": "makise-kurisu-chibi-74-cautious-tiptoe-step.png"
+    },
+    {
+      "id": 75,
+      "state": "crouching-to-inspect-ground",
+      "file": "makise-kurisu-chibi-75-crouching-to-inspect-ground.png"
+    },
+    {
+      "id": 76,
+      "state": "sitting-hugging-knees-pensive",
+      "file": "makise-kurisu-chibi-76-sitting-hugging-knees-pensive.png"
+    },
+    {
+      "id": 77,
+      "state": "hands-on-hips-lecturing",
+      "file": "makise-kurisu-chibi-77-hands-on-hips-lecturing.png"
+    },
+    {
+      "id": 78,
+      "state": "sheepish-cheek-scratch",
+      "file": "makise-kurisu-chibi-78-sheepish-cheek-scratch.png"
+    },
+    {
+      "id": 79,
+      "state": "playful-mock-salute",
+      "file": "makise-kurisu-chibi-79-playful-mock-salute.png"
+    },
+    {
+      "id": 80,
+      "state": "leaning-forward-hands-on-knees-curious",
+      "file": "makise-kurisu-chibi-80-leaning-forward-hands-on-knees-curious.png"
+    },
+    {
+      "id": 81,
+      "state": "welcoming-arms-open",
+      "file": "makise-kurisu-chibi-81-welcoming-arms-open.png"
+    },
+    {
+      "id": 82,
+      "state": "adjusting-coat-lapels-ready",
+      "file": "makise-kurisu-chibi-82-adjusting-coat-lapels-ready.png"
+    }
+  ]
+}

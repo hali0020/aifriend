@@ -1,0 +1,66 @@
+# Secrets and machine-specific configuration
+.env
+.env.*
+data/memory.json
+data/settings.json
+
+# Local runtimes, downloaded installers, and model weights
+runtime/
+downloads/
+models/
+node_modules/
+.venv/
+venv/
+.cache/
+
+# Model artifacts outside the standard model directory
+*.gguf
+*.safetensors
+*.onnx
+*.pt
+*.pth
+*.ckpt
+.ollama/
+
+# Private keys and credential exports
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+secrets*.json
+
+# Audio files stay local; only their usage notes are versioned
+audio/*
+!audio/README.md
+
+# User-provided copyrighted/licensed source material stays local
+data/character-sources/*
+!data/character-sources/README.md
+
+# Generated corpus outputs stay local; ship only the original defaults/docs
+data/character-corpus/*
+!data/character-corpus/README.md
+!data/character-corpus/default_style_dictionary.json
+!data/character-corpus/default_retrieval_examples.jsonl
+
+# Generated caches, temporary files, and logs
+data/quarantine/
+work/
+tmp/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+coverage/
+*.log
+*.tmp
+*.pid
+*.part
+*.crdownload
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini

@@ -1,0 +1,27 @@
+{
+  "name": "mori-companion-ai",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "start": "node server.js",
+    "desktop": "node scripts/launch-desktop.cjs",
+    "check": "node --check server.js && node --check public/app.js && node --check public/desktop-pet.js && node --check public/desktop-pet-bootstrap.js && node --check public/desktop-pet-entry.js && node --check scripts/launch-desktop.cjs && node --check scripts/test-launch-desktop.cjs && node --check electron/main.cjs && node --check electron/preload-host.cjs && node --check electron/preload-pet.cjs && npm run test:unit",
+    "test:unit": "npm run test:safety && npm run test:media && npm run test:desktop && node scripts/test-launch-desktop.cjs",
+    "test:safety": "node --test tests/safety-classifier.test.js tests/safety-service.test.js",
+    "test:media": "node --test tests/media-validation.test.js",
+    "test:desktop": "node --test tests/desktop-pet-assets.test.js tests/electron-edge-state.test.cjs",
+    "catalog:sync": "python scripts/sync_desktop_pet_catalog.py",
+    "test:catalog": "python scripts/test_desktop_pet_catalog.py && python scripts/sync_desktop_pet_catalog.py --check",
+    "test:pet": "python scripts/test_desktop_pet_animations.py",
+    "test": "npm run test:unit && node scripts/smoke-test.mjs && python scripts/test_character_corpus.py && npm run test:catalog && npm run test:pet",
+    "corpus:build": "python scripts/build_character_corpus.py"
+  },
+  "devDependencies": {
+    "electron": "43.4.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

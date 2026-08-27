@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>克里斯提娜 · Amadeus</title><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/model-center.css"><link rel="stylesheet" href="/avatar.css"><link rel="stylesheet" href="/presence.css"><link rel="stylesheet" href="/message-state.css"><link rel="stylesheet" href="/enhancements.css">
+</head>
+<body>
+  <main class="shell">
+    <aside class="side">
+      <div class="brand"><div class="orb small avatar"><img src="/christina-avatar.webp" alt="克里斯提娜头像"></div><div><b>克里斯提娜</b><span>牧濑红莉西 · LabMem 004</span></div></div>
+      <div id="privacyState" class="privacy">🔒 本地优先 · 不会自动回退云端</div>
+      <div id="safetyStatus" class="safety-status" data-mode="local" role="status" aria-live="polite">正在确认安全检查状态…</div>
+    </aside>
+    <section class="chat">
+      <header><div><h1>连接已建立</h1><p><i></i><span id="status">正在确认运行环境…</span></p></div><div class="header-actions"><button id="voiceMode" title="切换语音模式">语音：关</button><button id="desktopPet" title="打开桌宠" aria-pressed="false">桌宠</button><button id="gameMode" title="打开游戏陪玩" aria-haspopup="dialog" aria-controls="gameDialog" aria-expanded="false" aria-pressed="false">陪玩</button><button id="memory">记忆</button><button id="models">模型</button><button id="clear" title="清空对话">重新开始</button></div></header>
+      <section id="gameSessionBar" class="game-session hidden" aria-live="polite">
+        <i aria-hidden="true"></i><div><b id="gameState">陪玩未开始</b><small id="gameStateDetail">尚未选择游戏窗口</small></div>
+        <button id="gameSnapshot" type="button">看一下</button><button id="gamePause" type="button">暂停观察</button><button id="gameStop" type="button" class="danger">停止共享</button>
+      </section>
+      <div id="messages" class="messages">
+        <div class="welcome"><div class="orb avatar"><img src="/christina-avatar.webp" alt="克里斯提娜头像"></div><h2>所以，找我有什么事？</h2><p>文字、图片和录音都可以。<br>先把已知条件说清楚，结论之后再讨论。</p><div class="suggestions"><button>帮我分析一个问题</button><button>我今天状态不太好</button><button>看看这张图有什么异常</button></div></div>
+      </div>
+      <div id="attachment" class="attachment hidden"></div>
+      <form id="composer" class="composer">
+        <label class="tool" title="上传图片">＋<input id="imageInput" type="file" accept="image/*" hidden></label>
+        <textarea id="input" rows="1" placeholder="想说什么都可以…"></textarea>
+        <button type="button" id="mic" class="tool" title="录制语音">⌁</button>
+        <button id="send" class="send" title="发送">↑</button>
+      </form>
+      <div class="hint">AI 的推断可能出错；重要结论需要核验，健康与安全问题请联系专业人士。</div>
+      <div id="metrics" class="metrics">等待本地模型响应</div>
+    </section>
+  </main>
+  <dialog id="modelDialog" class="model-dialog"><div class="model-head"><div><h2>模型中心</h2><p id="ollamaState">正在检测本地运行环境…</p></div><button id="closeModels">×</button></div><label class="provider-row">服务模式<select id="provider"><option value="auto">本地优先（不上传）</option><option value="local">仅本地</option><option value="cloud">仅云端</option><option value="demo">演示模式</option></select></label><div class="model-note">“本地优先”只会使用 Ollama 或演示回复，不会在本地模型不可用时自动上传。只有手动选择“仅云端”才会发送对话。</div><div id="modelList" class="model-list"></div><div class="speech-row"><div><b>人物风格库</b><span id="styleState">检测本地风格词典…</span></div><em>短句检索 · 不背诵剧情</em></div><div class="speech-row"><div><b>Whisper Tiny</b><span id="asrState">检测本地语音识别…</span></div><em>收到录音时启动</em></div><section class="tts-panel"><div class="tts-head"><div><b>语音模式</b><span id="ttsState">默认关闭；开启后朗读回复</span></div><label class="switch"><input id="ttsEnabled" type="checkbox"><i></i></label></div><label>声音<select id="ttsVoice"></select></label><div class="tts-actions"><label>语速<input id="ttsRate" type="range" min="0.75" max="1.25" step="0.05" value="0.95"></label><button id="ttsPreview" type="button">试听</button></div></section><div class="dialog-actions"><button id="clearCache">释放模型显存</button></div></dialog>
+  <dialog id="memoryDialog" class="model-dialog"><div class="model-head"><div><h2>本地记忆</h2><p>只保存你主动添加的内容，可逐条删除</p></div><button id="closeMemory">×</button></div><form id="memoryForm" class="memory-form"><select id="memoryType"><option value="preference">偏好</option><option value="event">重要事件</option><option value="boundary">边界/不要做</option></select><input id="memoryText" maxlength="240" placeholder="例如：回答尽量简洁" required><button>添加</button></form><div id="memoryList" class="memory-list"></div><div class="dialog-actions"><button id="clearMemory" class="danger">删除全部记忆</button></div></dialog>
+  <dialog id="gameDialog" class="model-dialog game-dialog"><div class="model-head"><div><h2>游戏陪玩 · 实验功能</h2><p>本地视觉分析，不读取游戏进程</p></div><button id="closeGame" aria-label="关闭游戏陪玩">×</button></div><div class="game-content">
+    <div class="game-privacy"><b>屏幕共享由你控制</b><span>默认不录音、不自动观察。只有点击“看一下”或启用低频观察时，才截取当前一帧交给本地视觉模型；截图不落盘，也不会回退云端。游戏画面与分析结果均不写入普通对话历史，只在当前页面显示。</span></div>
+    <div id="gameLocalState" class="game-local-state" role="status" aria-live="polite">正在检查本地视觉模型…</div>
+    <video id="gamePreview" autoplay muted playsinline aria-label="共享画面预览"></video>
+    <div class="game-grid">
+      <label>游戏名称<input id="gameName" maxlength="60" placeholder="可选，例如：艾尔登法环"></label>
+      <label>当前目标<input id="gameGoal" maxlength="120" placeholder="可选，例如：找出口但不要剧透"></label>
+      <label>陪玩方式<select id="gameStyle"><option value="companion">队友吐槽</option><option value="observer">专注观察</option><option value="strategy">战术建议</option><option value="puzzle">渐进解谜</option></select></label>
+      <label>观察间隔<select id="gameInterval" disabled><option value="30">30 秒</option><option value="60" selected>60 秒</option><option value="120">120 秒</option></select></label>
+    </div>
+    <div class="game-switches"><label><input id="gameSpoilerFree" type="checkbox" checked> 防剧透</label><label><input id="gameAuto" type="checkbox"> 低频自动观察</label></div>
+    <div class="game-actions"><button id="chooseGameWindow" type="button" class="primary" disabled>选择游戏窗口</button><button id="gameAnalyzeNow" type="button" disabled>分析当前画面</button><button id="gameStopDialog" type="button" class="danger" disabled>停止共享</button></div>
+    <small class="game-boundary">仅提供可见信息分析、一般策略、解谜提示和赛后复盘；不做内存读取、宏、自动瞄准、敌位追踪或反作弊绕过。</small>
+  </div></dialog>
+  <script type="module" src="/app.js"></script>
+</body></html>

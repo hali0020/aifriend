@@ -3,6 +3,7 @@
 .env.*
 data/memory.json
 data/settings.json
+data/user-profile.local.json
 
 # Local runtimes, downloaded installers, and model weights
 runtime/

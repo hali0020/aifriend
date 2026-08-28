@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "enabled": false,
+  "preferredName": "",
+  "preferredFormOfAddress": "",
+  "pronouns": "",
+  "locale": "zh-CN",
+  "timeZone": "Asia/Shanghai",
+  "interests": [],
+  "preferences": {
+    "language": "zh-CN",
+    "responseLength": "balanced",
+    "technicalLevel": "mixed"
+  },
+  "boundaries": []
+}

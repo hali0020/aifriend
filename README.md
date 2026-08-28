@@ -148,7 +148,19 @@ ollama pull qwen3-vl:4b
 
 也可以启动应用后在“模型中心”中下载和切换模型。
 
-### 3. 启动 Web 版
+### 3. 可选：配置本地用户资料
+
+仓库只提交空值模板；真实称呼、代词、兴趣、回复偏好和交流边界统一保存在被 Git 忽略的 `data/user-profile.local.json`：
+
+```powershell
+Copy-Item data/user-profile.example.json data/user-profile.local.json
+```
+
+把 `enabled` 改为 `true` 后再填写需要的字段。`preferredFormOfAddress` 表示希望角色如何称呼你；schema 不接受现实住址字段。该文件经过严格字段、长度和本地安全校验，只会作为低权限背景数据提供给本地普通聊天；云端模式和游戏陪玩不会读取它，浏览器页面与 Electron IPC 也拿不到原始内容。不要在其中保存邮箱、电话、证件号、账号或密钥；密钥仍应使用进程环境变量或系统凭据库。
+
+如需把资料放到仓库之外，可在启动前设置 `AGENT_USER_PROFILE_PATH` 为本机文件路径。这个路径及文件内容都不应写进版本控制。
+
+### 4. 启动 Web 版
 
 ```powershell
 npm start
@@ -156,7 +168,7 @@ npm start
 
 使用终端显示的本地访问地址打开页面。
 
-### 4. 启动 Electron 桌宠
+### 5. 启动 Electron 桌宠
 
 ```powershell
 npm run desktop
@@ -174,9 +186,10 @@ npm run desktop
 npm run check
 ```
 
-当前覆盖 85 个 Node 测试，重点验证：
+当前覆盖 98 个 Node 测试，重点验证：
 
 - 安全判定、危机支持、凭据脱敏和远端复核策略
+- 本地用户资料的严格 schema、脱敏以及云端/游戏隔离
 - 图片/音频真实格式、尺寸、动画和路径校验
 - 桌宠 catalog、动画 URL、边缘状态与 preload 最小接口
 - Electron 启动账户策略
@@ -202,7 +215,7 @@ python scripts/test_character_corpus.py
 ├─ electron/                  # 主进程、preload 与窗口边缘状态
 ├─ lib/                       # 安全分类、安全服务、媒体校验
 ├─ public/                    # Web UI、桌宠逻辑与可发布素材
-├─ data/                      # 原创默认风格词典及本地数据说明
+├─ data/                      # 默认风格词典、本地资料空值模板及数据说明
 ├─ scripts/                   # 启动、冒烟测试、语料与素材管线
 ├─ tests/                     # Node 自动化测试
 ├─ server.js                  # 本地 HTTP Agent 与模型编排
@@ -218,7 +231,8 @@ python scripts/test_character_corpus.py
 - 游戏截图、游戏上下文和游戏分析永远禁止远程审核。
 - 模型输出必须先完整通过安全检查，才会显示给用户。
 - Electron renderer 不获得通用文件、shell、URL 或 IPC 权限。
-- `.env`、本地记忆、设置、模型、音频、授权原文和隔离区不会进入版本控制。
+- `.env`、本地用户资料、记忆、设置、模型、音频、授权原文和隔离区不会进入版本控制。
+- 本地用户资料与长期记忆只进入本地普通聊天；云端模式和游戏陪玩不会读取它们。
 
 ## 已知限制
 

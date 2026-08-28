@@ -3,7 +3,11 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
+  desktopPetAnimationForState,
+  desktopPetEmotionForText,
   desktopPetPoseForEdgeState,
+  desktopPetSurfaceOrder,
+  nextDesktopPetRoamTarget,
   parseDesktopPetPoseCatalog,
   resolveDesktopPetAnimationFrameUrl,
   resolveDesktopPetAnimationManifestUrl,
@@ -13,6 +17,37 @@ import {
 
 const PAGE_URL = "http://127.0.0.1:3000/desktop-pet.html";
 const MANIFEST_URL = "http://127.0.0.1:3000/desktop-pet-assets/animations/manifest.json";
+
+test("Web 桌宠固定使用页面内 Shadow DOM 且不依赖弹窗或 PiP", () => {
+  assert.deepEqual(desktopPetSurfaceOrder(), ["embedded"]);
+  assert.deepEqual(desktopPetSurfaceOrder({ pictureInPicture: true, popup: true }), ["embedded"]);
+  assert.deepEqual(desktopPetSurfaceOrder({ pictureInPicture: false, popup: true }), ["embedded"]);
+});
+
+test("桌宠由用户文本和回复语义映射情绪，未知文本保持中性", () => {
+  assert.equal(desktopPetEmotionForText("我今天状态不太好"), "sad");
+  assert.equal(desktopPetEmotionForText("太累了，想睡觉"), "sleepy");
+  assert.equal(desktopPetEmotionForText("居然一次就成功了"), "surprised");
+  assert.equal(desktopPetEmotionForText("为什么会这样，真奇怪"), "confused");
+  assert.equal(desktopPetEmotionForText("普通陈述"), "");
+});
+
+test("错误、终止和处理中状态优先于残留情绪", () => {
+  assert.equal(desktopPetAnimationForState({ phase: "thinking", emotion: "happy" }), "thinking");
+  assert.equal(desktopPetAnimationForState({ phase: "streaming", emotion: "sad" }), "thinking");
+  assert.equal(desktopPetAnimationForState({ phase: "error", emotion: "happy" }), "panicked");
+  assert.equal(desktopPetAnimationForState({ phase: "aborted", emotion: "happy" }), "deadpan");
+  assert.equal(desktopPetAnimationForState({ phase: "complete", emotion: "sad" }), "sad");
+});
+
+test("页面内桌宠漫游目标保持在视口并采用有限步长", () => {
+  const leftUp = nextDesktopPetRoamTarget({ viewportWidth: 1440, viewportHeight: 900, petWidth: 300, petHeight: 380, currentRight: 22, currentBottom: 22, randomX: 1, randomY: 1 });
+  assert.deepEqual(leftUp, { right: 242, bottom: 152 });
+  assert.equal(Object.isFrozen(leftUp), true);
+  const clamped = nextDesktopPetRoamTarget({ viewportWidth: 320, viewportHeight: 568, petWidth: 292, petHeight: 540, currentRight: 999, currentBottom: 999, randomX: 1, randomY: 1 });
+  assert.deepEqual(clamped, { right: 14, bottom: 14 });
+  assert.equal(nextDesktopPetRoamTarget({ viewportWidth: 0 }), null);
+});
 
 function validCatalog() {
   return {

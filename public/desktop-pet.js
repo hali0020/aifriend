@@ -22,9 +22,9 @@ const PET_EDGE_POSES = Object.freeze({
 });
 const VERIFIED_POSE_CATALOGS = new WeakSet();
 const PET_ANIMATION_PATTERNS = [
-  ["sleepy", /困|睡|晚安|休息|疲惫|打哈欠/],
+  ["sleepy", /困|想睡|睡不着|晚安|休息|疲惫|太累|很累|打哈欠/],
   ["panicked", /糟糕|危险|来不及|慌|崩溃|严重错误|失败了/],
-  ["sad", /难过|伤心|遗憾|失望|对不起|抱歉/],
+  ["sad", /难过|伤心|遗憾|失望|低落|不好受|委屈|状态不太好|心情不好|对不起|抱歉/],
   ["angry", /生气|恼火|可恶|笨蛋|不许|别闹/],
   ["shy", /害羞|脸红|喜欢你|谢谢夸奖|不好意思/],
   ["surprised", /居然|竟然|意外|没想到|真的吗|怎么会/],
@@ -41,8 +41,8 @@ const PET_STYLE = `
   body{font-family:Inter,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:linear-gradient(145deg,#eef3ef,#dfe9e3)}
   button,input{font:inherit}button{cursor:pointer}
   button:focus-visible,input:focus-visible{outline:3px solid #52776655;outline-offset:2px}
-  .pet-shell{position:relative;width:100%;height:100%;min-height:320px;padding:8px;isolation:isolate;user-select:none}
-  .pet-stage{position:relative;width:100%;height:100%}
+  .pet-shell{position:relative;width:100%;height:100%;min-height:320px;padding:8px;isolation:isolate;user-select:none;pointer-events:none}
+  .pet-stage{position:relative;width:100%;height:100%;pointer-events:none}
   .pet-card{position:absolute;z-index:4;top:4px;right:14px;left:14px;display:grid;justify-items:center;gap:7px;pointer-events:none}
   .pet-status{position:relative;display:grid;grid-template-columns:7px minmax(0,1fr);align-items:center;column-gap:7px;width:min(190px,calc(100% - 66px));min-height:29px;overflow:hidden;border:1px solid #ffffffd6;border-radius:999px;padding:6px 11px;background:var(--glass);box-shadow:0 5px 15px #263a2f24;pointer-events:auto}
   .pet-status::after{content:"";position:absolute;right:10px;bottom:3px;left:25px;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--accent),#b8cec1)}
@@ -53,15 +53,16 @@ const PET_STYLE = `
   .pet-bubble{position:relative;width:min(250px,100%);min-height:0;max-height:74px;overflow:hidden;border:1px solid #cfd8d2;border-radius:16px;padding:9px 12px;background:#fffffff2;color:var(--ink);box-shadow:0 8px 22px #263a2f28;font-size:12px;line-height:1.5;text-align:center;white-space:pre-wrap;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;pointer-events:auto}
   .pet-bubble::after{content:"";position:absolute;bottom:-7px;left:50%;width:12px;height:12px;border-right:1px solid #cfd8d2;border-bottom:1px solid #cfd8d2;background:#fff;transform:translateX(-50%) rotate(45deg)}
   .pet-bubble.expanded{max-height:130px;overflow:auto;display:block;-webkit-line-clamp:unset;text-align:left}
-  .pet-avatar{position:absolute;z-index:2;right:50%;bottom:3px;width:224px;height:238px;overflow:visible;border:0;padding:0;background:transparent;transform:translateX(50%)}
+  .pet-avatar{position:absolute;z-index:2;right:50%;bottom:3px;width:224px;height:238px;overflow:visible;border:0;padding:0;background:transparent;transform:translateX(50%);pointer-events:auto}
   .pet-avatar img{width:100%;height:100%;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 12px 8px #1d30262f);pointer-events:none;animation:pet-breathe 4.8s ease-in-out infinite}
   .pet-avatar img[data-fallback="true"]{border-radius:46%;background:#fff;mix-blend-mode:multiply;object-fit:cover;object-position:center 18%}
   .pet-avatar.thinking img{animation:pet-think 1.05s ease-in-out infinite}
   .pet-avatar.speaking img{filter:drop-shadow(0 0 7px #7fb493aa) drop-shadow(0 12px 8px #1d30262f)}
   .pet-name{position:absolute;z-index:3;right:50%;bottom:1px;max-width:190px;overflow:hidden;border:1px solid #ffffffd0;border-radius:999px;padding:4px 10px;background:#ffffffc9;box-shadow:0 4px 12px #20322922;color:#52645a;font-size:10px;text-overflow:ellipsis;white-space:nowrap;transform:translateX(50%);pointer-events:none}
-  .pet-controls{position:absolute;z-index:8;top:104px;right:2px;display:flex;flex-direction:column;gap:4px;opacity:0;transform:translateX(3px);transition:opacity .15s ease,transform .15s ease}
-  .pet-shell:hover .pet-controls,.pet-shell:focus-within .pet-controls{opacity:1;transform:none}
+  .pet-controls{position:absolute;z-index:8;top:104px;right:2px;display:flex;flex-direction:column;gap:4px;opacity:0;transform:translateX(3px);transition:opacity .15s ease,transform .15s ease;pointer-events:none}
+  .pet-shell:hover .pet-controls,.pet-shell:focus-within .pet-controls{opacity:1;transform:none;pointer-events:auto}
   .pet-controls button{display:grid;width:28px;height:28px;place-items:center;border:1px solid #c4d0c8;border-radius:9px;padding:0;background:#f9fcfaf2;color:#43564c;box-shadow:0 4px 10px #263a2f24;font-size:12px}
+  .pet-controls button[hidden]{display:none}
   .pet-bottom{position:absolute;z-index:10;right:6px;bottom:8px;left:6px;display:grid;gap:6px;border:1px solid #ffffffd6;border-radius:15px;padding:8px;background:#f8fbf8f2;box-shadow:0 10px 28px #23352c38;opacity:0;transform:translateY(14px) scale(.97);pointer-events:none;transition:opacity .16s ease,transform .16s ease;user-select:auto}
   .pet-shell.chat-open .pet-bottom{opacity:1;transform:none;pointer-events:auto}
   .pet-form{display:grid;grid-template-columns:1fr auto;gap:6px}
@@ -74,8 +75,8 @@ const PET_STYLE = `
   .pet-mode{display:none}
   body.native-pet-page{background:transparent!important}
   body.native-pet-page .pet-shell{background:transparent}
-  body.native-pet-page .pet-avatar,body.native-pet-page .pet-status{-webkit-app-region:drag;app-region:drag}
-  body.native-pet-page .pet-bubble,body.native-pet-page .pet-controls,body.native-pet-page .pet-controls button,body.native-pet-page .pet-bottom,body.native-pet-page button:not(.pet-avatar),body.native-pet-page input{-webkit-app-region:no-drag;app-region:no-drag}
+  body.native-pet-page .pet-status{-webkit-app-region:drag;app-region:drag}
+  body.native-pet-page .pet-avatar,body.native-pet-page .pet-bubble,body.native-pet-page .pet-controls,body.native-pet-page .pet-controls button,body.native-pet-page .pet-bottom,body.native-pet-page button,body.native-pet-page input{-webkit-app-region:no-drag;app-region:no-drag}
   @keyframes pet-breathe{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-4px) rotate(1deg)}}
   @keyframes pet-think{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-6px) rotate(1deg)}}
   @keyframes pet-progress{to{background-position:-180% 0}}
@@ -119,6 +120,35 @@ function unsafeRelativePath(value) {
 
 export function desktopPetPoseForEdgeState(value) {
   return PET_EDGE_STATES.has(value) ? PET_EDGE_POSES[value] : null;
+}
+
+export function desktopPetSurfaceOrder() {
+  return ["embedded"];
+}
+
+export function nextDesktopPetRoamTarget({
+  viewportWidth,
+  viewportHeight,
+  petWidth,
+  petHeight,
+  currentRight,
+  currentBottom,
+  randomX = 0.5,
+  randomY = 0.5,
+  margin = 14
+} = {}) {
+  const values = [viewportWidth, viewportHeight, petWidth, petHeight, currentRight, currentBottom, randomX, randomY, margin];
+  if (values.some(value => typeof value !== "number" || !Number.isFinite(value))
+    || viewportWidth <= 0 || viewportHeight <= 0 || petWidth <= 0 || petHeight <= 0 || margin < 0) return null;
+  const maxRight = Math.max(margin, viewportWidth - petWidth - margin);
+  const maxBottom = Math.max(margin, viewportHeight - petHeight - margin);
+  const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
+  const boundedRandom = value => clamp(value, 0, 1);
+  const stepX = Math.min(220, Math.max(36, (maxRight - margin) * 0.45));
+  const stepY = Math.min(130, Math.max(28, (maxBottom - margin) * 0.4));
+  const right = clamp(currentRight + (boundedRandom(randomX) * 2 - 1) * stepX, margin, maxRight);
+  const bottom = clamp(currentBottom + (boundedRandom(randomY) * 2 - 1) * stepY, margin, maxBottom);
+  return Object.freeze({ right: Math.round(right), bottom: Math.round(bottom) });
 }
 
 export function resolveDesktopPetAnimationManifestUrl(value, pageUrl) {
@@ -231,15 +261,26 @@ export function selectNextDesktopPetManualPose(catalog, currentId = 0) {
   return Object.freeze({ id: selected.id, state: selected.state });
 }
 
-function animationNameForState(state) {
-  if (PET_ANIMATION_STATES.has(state.emotion)) return state.emotion;
-  if (state.phase === "thinking" || state.phase === "streaming") return "thinking";
+export function desktopPetEmotionForText(value) {
+  const text = clean(value, 2000);
+  for (const [name, pattern] of PET_ANIMATION_PATTERNS) if (pattern.test(text)) return name;
+  return "";
+}
+
+export function desktopPetAnimationForState(state) {
+  if (!isRecord(state)) return "idle";
+  if (state.phase === "thinking" || state.phase === "streaming" || state.hostBusy === true || state.gameBusy === true) return "thinking";
   if (state.phase === "error") return "panicked";
   if (state.phase === "aborted") return "deadpan";
-  const text = `${state.reply || ""} ${state.label || ""} ${state.detail || ""}`;
-  for (const [name, pattern] of PET_ANIMATION_PATTERNS) if (pattern.test(text)) return name;
+  if (PET_ANIMATION_STATES.has(state.emotion)) return state.emotion;
+  const inferred = desktopPetEmotionForText(`${state.reply || ""} ${state.label || ""} ${state.detail || ""}`);
+  if (inferred) return inferred;
   if (state.speaking || state.phase === "complete") return "happy";
   return "idle";
+}
+
+function animationNameForState(state) {
+  return desktopPetAnimationForState(state);
 }
 
 function createPetFrameAnimator(targetWindow, image, manifestUrl, catalogUrl) {
@@ -516,7 +557,7 @@ function safeState(value) {
   if (!isRecord(value) || !isRecord(value.response) || !isRecord(value.speech) || !isRecord(value.game)) return null;
   const phase = VALID_PHASES.has(value.response.phase) ? value.response.phase : "idle";
   return {
-    reply: shortReply(value.reply) || "所以，找我有什么事？先把条件说清楚。",
+    reply: shortReply(value.reply) || "所以，今天想聊什么？",
     label: clean(value.response.label, 60) || "连接正常",
     detail: clean(value.response.detail, 160),
     phase,
@@ -530,23 +571,29 @@ function safeState(value) {
   };
 }
 
-function installPetUi(doc, avatarUrl, spriteUrl, native = false) {
-  if (!doc.querySelector("style[data-desktop-pet]")) {
+function installPetUi(doc, avatarUrl, spriteUrl, native = false, mountRoot = null) {
+  let petStyle = (mountRoot || doc).querySelector("style[data-desktop-pet]");
+  if (!petStyle) {
     const meta = doc.createElement("meta");
     meta.name = "viewport";
     meta.content = "width=device-width,initial-scale=1";
-    if (!doc.querySelector('meta[name="viewport"]')) doc.head.append(meta);
-    const style = doc.createElement("style");
-    style.dataset.desktopPet = "";
-    style.textContent = PET_STYLE;
-    doc.head.append(style);
+    if (!mountRoot && !doc.querySelector('meta[name="viewport"]')) doc.head.append(meta);
+    petStyle = doc.createElement("style");
+    petStyle.dataset.desktopPet = "";
+    petStyle.textContent = mountRoot
+      ? `:host{display:block;width:100%;height:100%;color-scheme:light;--ink:#26352e;--muted:#6e7c74;--line:#d5ddd7;--glass:#fffdf9ed;--accent:#6f9a82}${PET_STYLE}`
+      : PET_STYLE;
+    if (!mountRoot) doc.head.append(petStyle);
   }
-  doc.title = "克里斯提娜 · 桌宠";
-  doc.body.classList.toggle("native-pet-page", native);
+  if (!mountRoot) {
+    doc.title = "克里斯提娜 · 桌宠";
+    doc.body.classList.toggle("native-pet-page", native);
+  }
   const root = doc.createElement("main");
   root.className = "pet-shell";
-  root.innerHTML = `<section class="pet-stage"><div class="pet-controls"><button class="pet-chat" type="button" title="输入消息" aria-label="输入消息" aria-expanded="false">⌨</button><button class="pet-action" type="button" title="切换桌宠动作" aria-label="切换桌宠动作">动</button><button class="pet-main" type="button" title="返回主界面" aria-label="返回主界面">↗</button><button class="pet-close" type="button" title="退出桌宠" aria-label="退出桌宠">×</button></div><section class="pet-card"><div class="pet-status" role="status" aria-live="polite" aria-atomic="true"><i aria-hidden="true"></i><div><b></b><small></small></div></div><button class="pet-bubble" type="button" aria-expanded="false" title="展开或收起回复"></button></section><button class="pet-avatar" type="button" title="按住拖动桌宠"><img alt="克里斯提娜 2D 桌宠"></button><div class="pet-name">克里斯提娜 · 牧濑红莉西</div></section><section class="pet-bottom"><form class="pet-form"><input maxlength="500" autocomplete="off" placeholder="直接问她…" aria-label="给克里斯提娜发送消息"><button type="submit">发送</button></form><div class="pet-actions"><button class="pet-snapshot" type="button">看一下游戏</button><button class="pet-voice" type="button" aria-pressed="false">声音：关</button></div><div class="pet-mode"></div></section>`;
-  doc.body.replaceChildren(root);
+  root.innerHTML = `<section class="pet-stage"><div class="pet-controls"><button class="pet-chat" type="button" title="输入消息" aria-label="输入消息" aria-expanded="false">⌨</button><button class="pet-action" type="button" title="切换桌宠动作" aria-label="切换桌宠动作">动</button><button class="pet-main" type="button" title="返回主界面" aria-label="返回主界面">↗</button><button class="pet-close" type="button" title="退出桌宠" aria-label="退出桌宠">×</button></div><section class="pet-card"><div class="pet-status" role="status" aria-live="polite" aria-atomic="true"><i aria-hidden="true"></i><div><b></b><small></small></div></div><button class="pet-bubble" type="button" aria-expanded="false" title="展开或收起回复"></button></section><button class="pet-avatar" type="button" title="按住拖动桌宠"><img alt="克里斯提娜 2D 桌宠"></button><div class="pet-name">克里斯提娜 · 牧濑红莉西</div></section><section class="pet-bottom"><form class="pet-form"><input maxlength="500" autocomplete="off" placeholder="直接问她…" aria-label="给克里斯提娜发送消息"><button type="submit">发送</button></form><div class="pet-actions"><button class="pet-snapshot" type="button">看一下游戏</button><button class="pet-voice" type="button" aria-pressed="false">声音：关</button><button class="pet-trash" type="button" hidden>移入回收站</button></div><div class="pet-mode"></div></section>`;
+  if (mountRoot) mountRoot.replaceChildren(petStyle, root);
+  else doc.body.replaceChildren(root);
   const refs = {
     root,
     avatar: root.querySelector(".pet-avatar"),
@@ -559,6 +606,7 @@ function installPetUi(doc, avatarUrl, spriteUrl, native = false) {
     send: root.querySelector(".pet-form button"),
     snapshot: root.querySelector(".pet-snapshot"),
     voice: root.querySelector(".pet-voice"),
+    trash: root.querySelector(".pet-trash"),
     chat: root.querySelector(".pet-chat"),
     action: root.querySelector(".pet-action"),
     main: root.querySelector(".pet-main"),
@@ -602,14 +650,18 @@ export function createDesktopPet({
   onSnapshot,
   onSetVoice,
   onToggleVoice,
+  onTrashFile,
   onOpenMain,
   onNativeToggle,
   onNativeClose
 } = {}) {
   const resolvedRole = ["standalone", "host", "pet"].includes(role) ? role : "standalone";
   let petWindow = null;
+  let embeddedRoot = null;
   let refs = null;
   let animator = null;
+  let uiWindow = null;
+  let keydownHandler = null;
   let opening = false;
   let mode = resolvedRole === "pet" ? "native" : "closed";
   let nativeVisible = resolvedRole === "host";
@@ -618,6 +670,12 @@ export function createDesktopPet({
   let readyTimer = null;
   let manualPoseTimer = null;
   let poseResumeTimer = null;
+  let emotionTimer = null;
+  let roamTimer = null;
+  let roamVisibilityHandler = null;
+  let roamResizeHandler = null;
+  let roamRight = 22;
+  let roamBottom = 22;
   let manualPoseId = 0;
   let manualPose = null;
   let poseSuppressed = false;
@@ -631,9 +689,9 @@ export function createDesktopPet({
   const pending = new Map();
   const ackCache = new Map();
   const state = {
-    reply: shortReply(initialReply) || "所以，找我有什么事？先把条件说清楚。",
+    reply: shortReply(initialReply) || "所以，今天想聊什么？",
     label: "连接正常",
-    detail: "有事就直接问，别绕圈子。",
+    detail: "这里随时可以继续。",
     phase: "idle",
     thinking: false,
     speaking: false,
@@ -645,10 +703,11 @@ export function createDesktopPet({
   };
   const channel = resolvedRole === "standalone" || !("BroadcastChannel" in window) ? null : new BroadcastChannel(PET_CHANNEL);
 
-  const isPopupOpen = () => {
-    try { return !!petWindow && !petWindow.closed; } catch { return false; }
+  const isStandaloneOpen = () => {
+    if (embeddedRoot) return embeddedRoot.isConnected;
+    try { return !!petWindow && petWindow !== window && !petWindow.closed; } catch { return false; }
   };
-  const isOpen = () => resolvedRole === "standalone" ? isPopupOpen() : resolvedRole === "host" ? nativeVisible : !!refs;
+  const isOpen = () => resolvedRole === "standalone" ? isStandaloneOpen() : resolvedRole === "host" ? nativeVisible : !!refs;
 
   function setText(node, value) {
     if (node && node.textContent !== value) node.textContent = value;
@@ -657,9 +716,12 @@ export function createDesktopPet({
   function syncTrigger() {
     if (!trigger) return;
     const active = isOpen();
+    delete trigger.dataset.error;
+    trigger.removeAttribute("aria-label");
     trigger.classList.toggle("active", active);
     trigger.setAttribute("aria-pressed", String(active));
     trigger.textContent = active ? "收起桌宠" : "桌宠";
+    trigger.title = active ? "收起桌宠" : "打开桌宠";
   }
 
   function pendingHas(command) {
@@ -679,6 +741,7 @@ export function createDesktopPet({
   function render() {
     if (!refs) return;
     refs.root.dataset.phase = state.phase;
+    refs.root.dataset.emotion = animationNameForState(state);
     setText(refs.reply, state.reply);
     setText(refs.label, state.label);
     setText(refs.detail, state.detail);
@@ -693,8 +756,9 @@ export function createDesktopPet({
     setText(refs.snapshot, state.gameBusy ? "分析中…" : "看一下游戏");
     refs.send.disabled = pendingHas("chat.send");
     refs.voice.disabled = pendingHas("voice.set");
+    refs.trash.disabled = pendingHas("file.trash");
     refs.action.disabled = !poseAllowed();
-    setText(refs.mode, mode === "pip" ? "置顶桌宠 · 关闭主页面时自动退出" : mode === "native" ? "Electron 桌宠 · 本地连接" : "迷你窗口 · 是否置顶由系统决定");
+    setText(refs.mode, mode === "pip" ? "置顶桌宠 · 关闭主页面时自动退出" : mode === "native" ? "Electron 桌宠 · 本地连接" : mode === "embedded" ? "页面内桌宠 · 当前标签页" : "迷你窗口 · 是否置顶由系统决定");
   }
 
   function snapshotState() {
@@ -739,6 +803,106 @@ export function createDesktopPet({
     render();
   }
 
+  function clearRoaming() {
+    if (roamTimer !== null) window.clearTimeout(roamTimer);
+    roamTimer = null;
+    if (roamVisibilityHandler) document.removeEventListener("visibilitychange", roamVisibilityHandler);
+    roamVisibilityHandler = null;
+    if (roamResizeHandler) window.removeEventListener("resize", roamResizeHandler);
+    roamResizeHandler = null;
+    embeddedRoot?.removeAttribute("data-roaming");
+  }
+
+  function clampRoamingToViewport() {
+    if (resolvedRole !== "standalone" || !embeddedRoot?.isConnected) return;
+    const target = nextDesktopPetRoamTarget({
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight,
+      petWidth: embeddedRoot.offsetWidth || 300,
+      petHeight: embeddedRoot.offsetHeight || 380,
+      currentRight: roamRight,
+      currentBottom: roamBottom,
+      randomX: 0.5,
+      randomY: 0.5
+    });
+    if (!target) return;
+    roamRight = target.right;
+    roamBottom = target.bottom;
+    embeddedRoot.style.right = `${target.right}px`;
+    embeddedRoot.style.bottom = `${target.bottom}px`;
+  }
+
+  function canRoam() {
+    if (resolvedRole !== "standalone" || !embeddedRoot?.isConnected || !refs || document.hidden) return false;
+    if (state.hostBusy || state.gameBusy || state.speaking || refs.root.classList.contains("chat-open")) return false;
+    if (refs.root.matches(":hover") || refs.root.matches(":focus-within")) return false;
+    return !window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  }
+
+  function scheduleRoaming(delay = 6500 + Math.round(Math.random() * 4500)) {
+    if (resolvedRole !== "standalone" || !embeddedRoot?.isConnected || disposed) return;
+    if (roamTimer !== null) window.clearTimeout(roamTimer);
+    roamTimer = window.setTimeout(() => {
+      roamTimer = null;
+      if (canRoam()) {
+        const target = nextDesktopPetRoamTarget({
+          viewportWidth: window.innerWidth,
+          viewportHeight: window.innerHeight,
+          petWidth: embeddedRoot.offsetWidth || 300,
+          petHeight: embeddedRoot.offsetHeight || 380,
+          currentRight: roamRight,
+          currentBottom: roamBottom,
+          randomX: Math.random(),
+          randomY: Math.random()
+        });
+        if (target) {
+          embeddedRoot.dataset.roaming = "true";
+          embeddedRoot.dataset.facing = target.right >= roamRight ? "left" : "right";
+          roamRight = target.right;
+          roamBottom = target.bottom;
+          embeddedRoot.style.right = `${target.right}px`;
+          embeddedRoot.style.bottom = `${target.bottom}px`;
+        }
+      }
+      scheduleRoaming();
+    }, Math.max(1000, delay));
+  }
+
+  function startRoaming() {
+    clearRoaming();
+    roamRight = window.innerWidth <= 720 ? 14 : 22;
+    roamBottom = window.innerWidth <= 720 ? 14 : 22;
+    roamVisibilityHandler = () => {
+      if (document.hidden) {
+        if (roamTimer !== null) window.clearTimeout(roamTimer);
+        roamTimer = null;
+      } else scheduleRoaming(1800);
+    };
+    roamResizeHandler = () => clampRoamingToViewport();
+    document.addEventListener("visibilitychange", roamVisibilityHandler);
+    window.addEventListener("resize", roamResizeHandler);
+    clampRoamingToViewport();
+    scheduleRoaming();
+  }
+
+  function applyTransientEmotion(value = "", duration = 4500) {
+    if (emotionTimer !== null) window.clearTimeout(emotionTimer);
+    emotionTimer = null;
+    state.emotion = PET_ANIMATION_STATES.has(value) ? value : "";
+    changed();
+    if (state.emotion && Number.isFinite(duration) && duration > 0) emotionTimer = window.setTimeout(() => {
+      emotionTimer = null;
+      state.emotion = "";
+      changed();
+    }, Math.min(12_000, Math.max(800, duration)));
+    return state.emotion;
+  }
+
+  function reactToText(text) {
+    if (resolvedRole === "pet") return "";
+    return applyTransientEmotion(desktopPetEmotionForText(text));
+  }
+
   function cancelPoseOverrides(resetEdge = true, resumeAfterMs = 0) {
     if (manualPoseTimer !== null) window.clearTimeout(manualPoseTimer);
     if (poseResumeTimer !== null) window.clearTimeout(poseResumeTimer);
@@ -757,23 +921,39 @@ export function createDesktopPet({
 
   function detach(fromWindow = false) {
     const oldWindow = petWindow;
+    const oldEmbeddedRoot = embeddedRoot;
+    clearRoaming();
     cancelPoseOverrides();
     animator?.dispose();
     animator = null;
+    if (uiWindow && keydownHandler) uiWindow.removeEventListener("keydown", keydownHandler);
+    uiWindow = null;
+    keydownHandler = null;
     petWindow = null;
+    embeddedRoot = null;
     refs = null;
     mode = "closed";
+    oldEmbeddedRoot?.remove();
     syncTrigger();
-    if (!fromWindow) {
+    if (!fromWindow && oldWindow && oldWindow !== window) {
       try { oldWindow?.close(); } catch {}
     }
+    if (!disposed && trigger?.isConnected) trigger.focus({ preventScroll: true });
   }
 
-  function bindUi(targetWindow, nextMode, native = false) {
+  function bindUi(targetWindow, nextMode, native = false, mountRoot = null) {
     animator?.dispose();
-    refs = installPetUi(targetWindow.document, avatarUrl, spriteUrl, native);
+    if (uiWindow && keydownHandler) uiWindow.removeEventListener("keydown", keydownHandler);
+    refs = installPetUi(targetWindow.document, avatarUrl, spriteUrl, native, mountRoot);
     animator = createPetFrameAnimator(targetWindow, refs.avatarImage, animationUrl, poseCatalogUrl);
     mode = nextMode;
+    refs.avatar.title = "点击展开或收起回复";
+    refs.avatar.setAttribute("aria-label", "展开或收起桌宠回复");
+    const status = refs.root.querySelector(".pet-status");
+    if (status && nextMode === "native") {
+      status.title = "按住顶部状态条可移动桌宠";
+      status.setAttribute("aria-label", "桌宠状态；按住这里可以移动桌宠");
+    }
     let composing = false;
     refs.input.addEventListener("compositionstart", () => { composing = true; });
     refs.input.addEventListener("compositionend", () => { composing = false; });
@@ -782,6 +962,9 @@ export function createDesktopPet({
       else detach();
     });
     refs.main.addEventListener("click", () => onOpenMain?.());
+    refs.main.hidden = nextMode === "embedded";
+    refs.trash.hidden = nextMode !== "native";
+    refs.avatar.addEventListener("click", () => applyTransientEmotion("surprised", 1800));
     refs.chat.addEventListener("click", () => {
       const open = refs.root.classList.toggle("chat-open");
       refs.chat.setAttribute("aria-expanded", String(open));
@@ -800,16 +983,21 @@ export function createDesktopPet({
         render();
       }, 3500);
     });
-    targetWindow.addEventListener("keydown", event => {
+    uiWindow = targetWindow;
+    keydownHandler = event => {
       if (event.key !== "Escape" || !refs?.root.classList.contains("chat-open")) return;
       refs.root.classList.remove("chat-open");
       refs.chat.setAttribute("aria-expanded", "false");
       refs.chat.focus();
-    });
+    };
+    targetWindow.addEventListener("keydown", keydownHandler);
     refs.voice.addEventListener("click", () => {
       if (resolvedRole === "pet") return sendCommand("voice.set", { enabled: !state.voice });
       state.voice = onSetVoice ? !!onSetVoice(!state.voice) : !!onToggleVoice?.();
       changed();
+    });
+    refs.trash.addEventListener("click", () => {
+      if (resolvedRole === "pet") sendCommand("file.trash", {});
     });
     refs.snapshot.addEventListener("click", async () => {
       if (!state.gameActive || state.gameBusy) return;
@@ -824,33 +1012,51 @@ export function createDesktopPet({
       refs.input.value = "";
       if (resolvedRole === "pet") return sendCommand("chat.send", { text });
       const sent = await onSend?.(text);
-      if (sent === false) setTransientStatus("还在处理上一条", "等回复结束后再发，别让我同时做两个实验。");
+      if (sent === false) setTransientStatus("还在处理上一条", "上一条完成后就可以继续。");
     });
-    if (!native) targetWindow.addEventListener("pagehide", () => { if (petWindow === targetWindow) detach(true); }, { once: true });
+    if (!native && nextMode !== "embedded") targetWindow.addEventListener("pagehide", () => { if (petWindow === targetWindow) detach(true); }, { once: true });
     render();
     syncTrigger();
   }
 
+  function bindEmbeddedUi() {
+    const container = document.createElement("section");
+    container.className = "embedded-desktop-pet";
+    container.setAttribute("role", "region");
+    container.setAttribute("aria-label", "克里斯提娜桌宠");
+    const shadow = container.attachShadow({ mode: "open" });
+    document.body.append(container);
+    embeddedRoot = container;
+    petWindow = window;
+    bindUi(window, "embedded", false, shadow);
+    startRoaming();
+  }
+
+  function reportOpenFailure(error) {
+    if (!trigger) return;
+    const message = clean(error?.message, 160) || "桌宠启动失败";
+    trigger.dataset.error = "true";
+    trigger.textContent = "桌宠不可用";
+    trigger.title = message;
+    trigger.setAttribute("aria-label", message);
+    window.setTimeout(() => {
+      if (trigger.dataset.error !== "true") return;
+      delete trigger.dataset.error;
+      trigger.removeAttribute("aria-label");
+      trigger.title = "打开桌宠";
+      syncTrigger();
+    }, 4000);
+  }
+
   async function open() {
     if (resolvedRole === "host") return toggleNative(true);
-    if (resolvedRole === "pet" || isPopupOpen() || opening) return;
+    if (resolvedRole === "pet" || isStandaloneOpen() || opening) return;
     opening = true;
     try {
-      let targetWindow;
-      let nextMode;
-      if (window.documentPictureInPicture?.requestWindow) {
-        targetWindow = await window.documentPictureInPicture.requestWindow({ width: 300, height: 380 });
-        nextMode = "pip";
-      } else {
-        targetWindow = window.open("", "christina-desktop-pet", "popup,width=300,height=380,resizable=yes");
-        if (!targetWindow) throw new Error("浏览器阻止了桌宠窗口，请允许此站点打开弹窗");
-        nextMode = "popup";
-      }
-      petWindow = targetWindow;
-      bindUi(targetWindow, nextMode);
+      bindEmbeddedUi();
     } catch (error) {
       detach(true);
-      window.alert(error.message || "桌宠启动失败");
+      reportOpenFailure(error);
     } finally {
       opening = false;
     }
@@ -877,7 +1083,7 @@ export function createDesktopPet({
 
   function toggle() {
     if (resolvedRole === "host") return toggleNative();
-    return isPopupOpen() ? close() : open();
+    return isStandaloneOpen() ? close() : open();
   }
 
   function setNativeVisible(visible) {
@@ -912,7 +1118,7 @@ export function createDesktopPet({
     changed();
   }
 
-  function begin(detail = "先核对事实和假设") {
+  function begin(detail = "正在核对事实和假设") {
     if (resolvedRole === "pet") return;
     cancelPoseOverrides(false);
     state.phase = "thinking";
@@ -933,7 +1139,7 @@ export function createDesktopPet({
     state.hostBusy = true;
     state.thinking = true;
     state.label = "正在回复";
-    state.detail = "结论还没整理完，先别打断。";
+    state.detail = "结论还在整理中。";
     changed(false);
   }
 
@@ -947,7 +1153,7 @@ export function createDesktopPet({
     state.thinking = false;
     state.label = "连接正常";
     state.detail = clean(detail, 160);
-    changed();
+    applyTransientEmotion(desktopPetEmotionForText(next || state.reply));
   }
 
   function idle(detail = "当前没有需要提醒的新情况") {
@@ -967,7 +1173,7 @@ export function createDesktopPet({
     state.hostBusy = false;
     state.thinking = false;
     state.label = aborted ? "已停止" : "连接失败";
-    state.detail = clean(message, 160) || (aborted ? "本次回复已中断" : "检查本地服务后再试");
+    state.detail = clean(message, 160) || (aborted ? "本次回复已中断" : "本地服务恢复后可以重试");
     changed();
   }
 
@@ -994,8 +1200,7 @@ export function createDesktopPet({
 
   function setEmotion(value = "") {
     if (resolvedRole === "pet") return;
-    state.emotion = PET_ANIMATION_STATES.has(value) ? value : "";
-    changed();
+    applyTransientEmotion(value);
   }
 
   function ackFor(message, ok, code = "", detail = "") {
@@ -1029,10 +1234,12 @@ export function createDesktopPet({
       post(ack);
     };
     let accepted = false;
+    let responseCode = "";
+    let responseDetail = "";
     try {
       if (message.command === "chat.send") {
         const text = typeof message.args.text === "string" ? message.args.text.trim() : "";
-        if (!text || text.length > 500) return reject("invalid", "消息长度必须在 1 到 500 字之间。");
+        if (!text || text.length > 500) return reject("invalid", "消息支持 1 到 500 字。");
         if (state.hostBusy) return reject("busy", "上一条回复还没有完成。");
         accepted = await onSend?.(text);
       } else if (message.command === "game.snapshot") {
@@ -1043,8 +1250,28 @@ export function createDesktopPet({
         if (typeof message.args.enabled !== "boolean") return reject("invalid", "声音状态无效。");
         const result = await onSetVoice?.(message.args.enabled);
         accepted = result === message.args.enabled;
+      } else if (message.command === "file.trash") {
+        if (Object.keys(message.args).length !== 0) return reject("invalid", "文件清理命令无效。");
+        const result = await onTrashFile?.();
+        if (result?.status === "trashed" && result.ok === true) {
+          accepted = true;
+          responseCode = "trashed";
+          responseDetail = "所选文件已移入系统回收站。";
+        } else if (result?.status === "cancelled" && result.ok === true) {
+          accepted = true;
+          responseCode = "cancelled";
+          responseDetail = "没有移动任何文件。";
+        } else {
+          const details = {
+            busy: "文件选择器正在使用。",
+            invalid: "所选内容不是可处理的普通文件。",
+            changed: "所选文件在确认期间发生变化；没有移动任何文件。",
+            failed: "系统没有完成回收站操作。"
+          };
+          return reject(clean(result?.status, 30) || "unavailable", details[result?.status] || "文件清理功能暂时不可用。");
+        }
       } else return reject("invalid", "不支持的桌宠命令。");
-      const ack = ackFor(message, accepted !== false, accepted === false ? "busy" : "", accepted === false ? "当前操作暂时不可用。" : "");
+      const ack = ackFor(message, accepted !== false, accepted === false ? "busy" : responseCode, accepted === false ? "当前操作暂时不可用。" : responseDetail);
       rememberAck(key, ack);
       post(ack);
     } catch {
@@ -1058,7 +1285,7 @@ export function createDesktopPet({
   }
 
   function sendCommand(command, args) {
-    if (resolvedRole !== "pet" || !channel) return setTransientStatus("主界面未连接", "请先重新启动桌宠。");
+    if (resolvedRole !== "pet" || !channel) return setTransientStatus("主界面未连接", "桌宠重启后可以重新连接主界面。");
     const id = makeId("command");
     const timeout = setTimeout(() => {
       pending.delete(id);
@@ -1070,7 +1297,7 @@ export function createDesktopPet({
     if (!sent) {
       clearTimeout(timeout);
       pending.delete(id);
-      setTransientStatus("主界面未连接", "请先重新启动桌宠。");
+      setTransientStatus("主界面未连接", "桌宠重启后可以重新连接主界面。");
     }
     render();
   }
@@ -1098,7 +1325,8 @@ export function createDesktopPet({
     if (!item) return;
     clearTimeout(item.timeout);
     pending.delete(id);
-    if (message.ok !== true) setTransientStatus("暂时不能执行", clean(message.message, 160) || "请稍后再试。");
+    if (message.ok !== true) setTransientStatus("暂时不能执行", clean(message.message, 160) || "稍后可以重试。");
+    else if (item.command === "file.trash") setTransientStatus(message.code === "trashed" ? "已移入回收站" : "没有移动文件", clean(message.message, 160));
     render();
   }
 
@@ -1117,9 +1345,12 @@ export function createDesktopPet({
   function dispose() {
     if (disposed) return;
     disposed = true;
+    clearRoaming();
     cancelPoseOverrides();
     clearTimeout(broadcastTimer);
     clearInterval(readyTimer);
+    if (emotionTimer !== null) window.clearTimeout(emotionTimer);
+    emotionTimer = null;
     animator?.dispose();
     animator = null;
     for (const item of pending.values()) clearTimeout(item.timeout);
@@ -1151,6 +1382,7 @@ export function createDesktopPet({
     setVoiceEnabled,
     setGameState,
     setEmotion,
+    reactToText,
     setEdgeState,
     setNativeVisible,
     isOpen,

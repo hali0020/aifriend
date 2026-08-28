@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createGameRequestCoordinator } from "../lib/game-request-coordinator.js";
+import { createGameRequestCoordinator, readRequestGameEnabled } from "../lib/game-request-coordinator.js";
 import { acceptsGameWindowSurface, historyForGameRequest, isGameSessionRequest, shouldSkipAutomaticFrame } from "../public/game-session-policy.js";
 
 test("browser capture accepts windows only while Electron may trust its native window picker", () => {
@@ -46,4 +46,15 @@ test("server stop epochs invalidate pending game requests and reject claims unti
   assert.equal(coordinator.canClaim(nextEpoch,new AbortController()),true);
   const aborted = new AbortController();aborted.abort();
   assert.equal(coordinator.canClaim(nextEpoch,aborted),false);
+});
+
+test("server accepts only a real boolean game flag", () => {
+  assert.equal(readRequestGameEnabled({}), false);
+  assert.equal(readRequestGameEnabled({ game: null }), false);
+  assert.equal(readRequestGameEnabled({ game: {} }), false);
+  assert.equal(readRequestGameEnabled({ game: { enabled: false } }), false);
+  assert.equal(readRequestGameEnabled({ game: { enabled: true } }), true);
+  for (const game of ["true", [], { enabled: "true" }, { enabled: 1 }, { enabled: null }]) {
+    assert.throws(() => readRequestGameEnabled({ game }), SyntaxError);
+  }
 });

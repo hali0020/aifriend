@@ -1,6 +1,8 @@
 import { emotionState, learnEmotionState } from "/emotion-engine.js";
-import { createDesktopPet } from "/desktop-pet.js";
+import { createDesktopPet } from "/desktop-pet.js?v=20260828.4";
 import { acceptsGameWindowSurface, historyForGameRequest, isGameSessionRequest, shouldSkipAutomaticFrame } from "/game-session-policy.js";
+import { stripInternalReplyLabels } from "/reply-policy.js";
+import { buildStatusView, unavailableStatusView } from "/status-view.js";
 const $ = s => document.querySelector(s);
 const electronHostPage = new URLSearchParams(window.location.search).get("electronHost") === "1";
 const messages = $("#messages"), input = $("#input"), attachment = $("#attachment");
@@ -23,10 +25,12 @@ function compactSafety(verdict){
 }
 function restoreHistoryItem(item){
   if(!item||!["user","assistant"].includes(item.role)||typeof item.text!=="string")return null;
-  const safety=compactSafety(item.safety);return{role:item.role,text:item.text.slice(0,20000),...(safety?{safety}:{})};
+  const text=(item.role==="assistant"?stripInternalReplyLabels(item.text):item.text).slice(0,20000);
+  if(item.role==="assistant"&&!text.trim())return null;
+  const safety=compactSafety(item.safety);return{role:item.role,text,...(safety?{safety}:{})};
 }
 // v2 与更早的记录有可能包含安全检查上线前的原文；保留旧键，但不再自动导入、显示或发送。
-let history = []; try { const saved=JSON.parse(storage.get(historyKey)||"[]"); history=Array.isArray(saved)?saved.map(restoreHistoryItem).filter(Boolean).slice(-30):[] } catch { storage.remove(historyKey) }
+let history = []; try { const saved=JSON.parse(storage.get(historyKey)||"[]"); history=Array.isArray(saved)?saved.map(restoreHistoryItem).filter(Boolean).slice(-30):[];storage.set(historyKey,JSON.stringify(history)) } catch { storage.remove(historyKey) }
 
 function escapeHtml(s=""){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function time(){return new Intl.DateTimeFormat("zh-CN",{hour:"2-digit",minute:"2-digit"}).format(new Date())}
@@ -38,17 +42,20 @@ function saveHistory(role,text,safetyVerdict=null){
     const replacement=typeof safetyVerdict?.replacementText==="string"?safetyVerdict.replacementText.trim():"";
     safeText=replacement|| (role==="user"?"[敏感输入未保存]":"[敏感输出未保存]");
   }
+  if(role==="assistant")safeText=stripInternalReplyLabels(safeText);
+  if(role==="assistant"&&!safeText.trim())return false;
   history.push({role,text:safeText.slice(0,20000),...(safety?{safety}:{})});history=history.slice(-30);storage.set(historyKey,JSON.stringify(history));return true;
 }
 function renderMsg(role,text,media,save=true,animate=false,emotionHint="",speakReply=false){
+  const displayText=role==="assistant"?stripInternalReplyLabels(text):String(text||"");
   $(".welcome")?.remove(); const el=document.createElement("div"); el.className=`msg ${role}`;
   const avatar=role==="assistant"?'<img class="msg-avatar" src="/christina-avatar.webp" alt="克里斯提娜头像">':"";
-  const state=role==="assistant"?`<div class="message-state${animate?" active":""}"><i></i><span>${animate?"结论整理完了":"连接正常"}</span><small>${animate?"听好，我只说一遍":"有事就把条件说清楚"}</small></div>`:"";
-  el.innerHTML=`${avatar}<div class="msg-body">${state}<div class="bubble">${media?`<img src="${media}" alt="用户上传的图片">`:""}<span class="bubble-text">${animate?"":escapeHtml(text)}</span></div><div class="meta">${role==="user"?"你":"克里斯提娜"} · ${time()} ${role==="assistant"?'<button class="copy-msg" title="复制回复">复制</button>':""}</div></div>`;
-  el.querySelector(".copy-msg")?.addEventListener("click",async e=>{await navigator.clipboard.writeText(el.querySelector(".bubble-text")?.textContent||text);e.currentTarget.textContent="已复制";setTimeout(()=>e.currentTarget.textContent="复制",1200)});
+  const state=role==="assistant"?`<div class="message-state${animate?" active":""}"><i></i><span>${animate?"回复已经整理好":"连接正常"}</span><small>${animate?"重点已经整理好了":"这里随时可以继续"}</small></div>`:"";
+  el.innerHTML=`${avatar}<div class="msg-body">${state}<div class="bubble">${media?`<img src="${media}" alt="用户上传的图片">`:""}<span class="bubble-text">${animate?"":escapeHtml(displayText)}</span></div><div class="meta">${role==="user"?"你":"克里斯提娜"} · ${time()} ${role==="assistant"?'<button class="copy-msg" title="复制回复">复制</button>':""}</div></div>`;
+  el.querySelector(".copy-msg")?.addEventListener("click",async e=>{await navigator.clipboard.writeText(el.querySelector(".bubble-text")?.textContent||displayText);e.currentTarget.textContent="已复制";setTimeout(()=>e.currentTarget.textContent="复制",1200)});
   messages.append(el); messages.scrollTop=messages.scrollHeight;
-  if(save)saveHistory(role,text);
-  if(animate&&role==="assistant")speakText(el,text,emotionHint,speakReply);
+  if(save)saveHistory(role,displayText);
+  if(animate&&role==="assistant")speakText(el,displayText,emotionHint,speakReply);
   return el;
 }
 function applySafetyNotice(el,verdict){
@@ -59,14 +66,8 @@ function applySafetyNotice(el,verdict){
   el.querySelector(".msg-body")?.prepend(notice);
 }
 history.forEach(x=>{const el=renderMsg(x.role,x.text,null,false);applySafetyNotice(el,x.safety)});
-function refreshStatus(){fetch("/api/status").then(r=>r.json()).then(s=>{
-  $("#status").textContent=s.processing==="local"?`本地 · ${s.model}`:s.processing==="cloud"?`云端 · ${s.model}`:s.processing==="demo"?"演示模式 · 可直接体验":s.processing==="cloud-offline"?"云端模式 · 凭据未配置":"仅本地 · Ollama 未就绪";
-  const safety=$("#safetyStatus"),privacy=$("#privacyState");
-  const imageGate=s.imageSemantic?.ready?"本地图像语义门已就绪":"本地图像语义门未就绪";
-  if(s.safety?.remoteEnabled){safety.textContent=s.safety.remoteReady?`本地文本输入/输出检查 · ${imageGate} · 可选 OpenAI 远程复核已启用`:`本地文本输入/输出检查 · ${imageGate} · 可选远程复核配置不完整`;safety.dataset.mode=s.safety.remoteReady&&s.imageSemantic?.ready?"remote":"error"}
-  else{safety.textContent=`本地文本输入/输出检查 · ${imageGate} · 可选远程复核未启用`;safety.dataset.mode=s.imageSemantic?.ready?"local":"error"}
-  privacy.textContent=s.processing==="cloud"?"☁️ 云端模式 · 对话会发送给所选云服务":s.processing==="cloud-offline"?"☁️ 云端模式未配置 · 当前不会发送内容":"🔒 本地优先 · 不会自动回退云端";
-}).catch(()=>{$("#status").textContent="本地服务未连接";$("#safetyStatus").textContent="安全状态暂时无法确认";$("#safetyStatus").dataset.mode="error"})}
+function applyStatusView(view){const safety=$("#safetyStatus"),privacy=$("#privacyState");$("#status").textContent=view.statusText;safety.textContent=view.safetyText;safety.title=view.safetyText;safety.dataset.mode=view.safetyMode;privacy.textContent=view.privacyText;privacy.title=view.privacyText}
+function refreshStatus(){fetch("/api/status").then(r=>{if(!r.ok)throw new Error(`状态请求失败：${r.status}`);return r.json()}).then(s=>applyStatusView(buildStatusView(s))).catch(()=>{applyStatusView(unavailableStatusView());window.setTimeout(refreshStatus,5000)})}
 refreshStatus();
 
 const modelDialog=$("#modelDialog"), modelList=$("#modelList");
@@ -91,16 +92,16 @@ async function pullModel(button){
 }
 
 let stateTimer=null,activeState=null;
-function setAiState(label="正在分析",detail="先核对事实和假设"){
+function setAiState(label="正在分析",detail="正在核对事实和假设"){
   desktopPet?.setStatus(label,detail);if(!activeState)return;activeState.classList.add("active");activeState.querySelector("span").textContent=label;activeState.querySelector("small").textContent=detail;
 }
 function startThinking(el){
-  clearInterval(stateTimer);activeState=el.querySelector(".message-state");const steps=[["正在分析","先核对事实和假设"],["重新检查推理","这个条件有点可疑"],["组织结论","别催，马上就好"]];let n=0;setAiState(...steps[0]);
+  clearInterval(stateTimer);activeState=el.querySelector(".message-state");const steps=[["正在分析","正在核对事实和假设"],["重新检查推理","这个条件有点可疑"],["组织结论","马上就好"]];let n=0;setAiState(...steps[0]);
   stateTimer=setInterval(()=>{n=Math.min(n+1,steps.length-1);setAiState(...steps[n])},1800);
 }
 function moodFor(text,hint=""){const mood=emotionState(text,hint);return[mood.label,mood.detail]}
 function speakText(el,text,emotionHint="",speakReply=false){
-  const target=el.querySelector(".bubble-text"),avatar=el.querySelector(".msg-avatar"),localState=el.querySelector(".message-state"),stateText=localState?.querySelector("span"),stateDetail=localState?.querySelector("small");avatar?.classList.add("speaking");if(localState){localState.classList.add("active");stateText.textContent="结论整理完了";stateDetail.textContent="听好，我只说一遍"}let i=0;
+  const target=el.querySelector(".bubble-text"),avatar=el.querySelector(".msg-avatar"),localState=el.querySelector(".message-state"),stateText=localState?.querySelector("span"),stateDetail=localState?.querySelector("small");avatar?.classList.add("speaking");if(localState){localState.classList.add("active");stateText.textContent="回复已经整理好";stateDetail.textContent="重点已经整理好了"}let i=0;
   const tick=()=>{i=Math.min(text.length,i+(/[，。！？；]/.test(text[i]||"")?1:2));target.textContent=text.slice(0,i);messages.scrollTop=messages.scrollHeight;if(i<text.length)setTimeout(tick,28);else{avatar?.classList.remove("speaking");const mood=moodFor(text,emotionHint);if(localState){stateText.textContent=mood[0];stateDetail.textContent=mood[1];localState.classList.remove("active")}}};tick();if(speakReply)speakAloud(text,true);
 }
 
@@ -110,7 +111,7 @@ let speechGeneration=0;
 function stopSpeaking(){speechGeneration++;window.speechSynthesis?.cancel();desktopPet?.setSpeaking(false)}
 function speakAloud(text,force=false){if(!("speechSynthesis" in window)||(!tts.enabled&&!force))return;const generation=++speechGeneration;window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text),voice=preferredVoice();if(voice){u.voice=voice;u.lang=voice.lang}u.rate=Number(tts.rate)||.95;u.pitch=1.05;u.onstart=()=>{if(generation===speechGeneration)desktopPet?.setSpeaking(true)};const finish=()=>{if(generation===speechGeneration)desktopPet?.setSpeaking(false)};u.onend=finish;u.onerror=finish;window.speechSynthesis.speak(u)}
 function loadVoices(){if(!("speechSynthesis" in window)){$("#ttsState").textContent="当前浏览器不支持";$("#ttsEnabled").disabled=true;return}voices=window.speechSynthesis.getVoices();const select=$("#ttsVoice");select.innerHTML=voices.map(v=>`<option value="${escapeHtml(v.name)}">${escapeHtml(v.name)} · ${escapeHtml(v.lang)}</option>`).join("");const chosen=preferredVoice();if(chosen){tts.voice=chosen.name;select.value=chosen.name;$("#ttsState").textContent=`已就绪 · ${chosen.lang}`}else $("#ttsState").textContent="等待系统加载声音…";saveTts()}
-$("#ttsEnabled").checked=tts.enabled;$("#ttsRate").value=tts.rate;$("#ttsEnabled").onchange=e=>{tts.enabled=e.target.checked;if(!tts.enabled)stopSpeaking();saveTts()};$("#ttsVoice").onchange=e=>{tts.voice=e.target.value;saveTts()};$("#ttsRate").oninput=e=>{tts.rate=Number(e.target.value);saveTts()};$("#ttsPreview").onclick=()=>speakAloud("我是克里斯提娜，也就是牧濑红莉西。先说清楚，你找我有什么事？",true);if("speechSynthesis" in window){window.speechSynthesis.onvoiceschanged=loadVoices;loadVoices()}
+$("#ttsEnabled").checked=tts.enabled;$("#ttsRate").value=tts.rate;$("#ttsEnabled").onchange=e=>{tts.enabled=e.target.checked;if(!tts.enabled)stopSpeaking();saveTts()};$("#ttsVoice").onchange=e=>{tts.voice=e.target.value;saveTts()};$("#ttsRate").oninput=e=>{tts.rate=Number(e.target.value);saveTts()};$("#ttsPreview").onclick=()=>speakAloud("我是克里斯提娜，也就是牧濑红莉西。所以，今天想聊什么？",true);if("speechSynthesis" in window){window.speechSynthesis.onvoiceschanged=loadVoices;loadVoices()}
 function syncVoiceMode(){$("#ttsEnabled").checked=tts.enabled;$("#voiceMode").textContent=tts.enabled?"语音：开":"语音：关";$("#voiceMode").classList.toggle("active",tts.enabled);desktopPet?.setVoiceEnabled(tts.enabled)}
 function setVoiceMode(enabled){tts.enabled=enabled===true;if(!tts.enabled)stopSpeaking();saveTts();syncVoiceMode();return tts.enabled}
 function toggleVoiceMode(){return setVoiceMode(!tts.enabled)}
@@ -125,7 +126,8 @@ desktopPet=createDesktopPet({
   onSetVoice:setVoiceMode,
   onToggleVoice:toggleVoiceMode,
   onOpenMain:()=>window.focus(),
-  onNativeToggle:visible=>window.desktopPetNative?.togglePet?.(visible)
+  onNativeToggle:visible=>window.desktopPetNative?.togglePet?.(visible),
+  onTrashFile:()=>window.desktopPetNative?.trashDesktopFile?.()
 });desktopPet.setVoiceEnabled(tts.enabled);
 disposePetVisibility=window.desktopPetNative?.onPetVisibility?.(visible=>desktopPet?.setNativeVisible(visible))||null;
 
@@ -148,7 +150,7 @@ function updateGameUi(message=""){
 }
 async function loadGameStatus(){
   const supported=!!navigator.mediaDevices?.getDisplayMedia;let status={ready:false,model:"qwen3-vl:4b"};try{status=await fetch("/api/game/status").then(r=>r.json())}catch{}
-  gameModelReady=supported&&status.ready&&status.imageSafety?.ready;$("#gameLocalState").textContent=!supported?"当前浏览器不支持屏幕共享":gameModelReady?`本地视觉模型与图像安全门已就绪 · ${status.model} · 截图不落盘`:`${status.model} 或本地图像安全门尚未就绪，请先启动 Ollama 或安装视觉模型`;updateGameUi();return{supported,status,ready:gameModelReady};
+  gameModelReady=supported&&status.ready&&status.imageSafety?.ready;$("#gameLocalState").textContent=!supported?"当前浏览器不支持屏幕共享":gameModelReady?`本地视觉模型与图像安全门已就绪 · ${status.model} · 截图不落盘`:`${status.model} 或本地图像安全门尚未就绪；Ollama 与视觉模型状态需要检查`;updateGameUi();return{supported,status,ready:gameModelReady};
 }
 function clearGameTimer(){if(gameTimer){clearTimeout(gameTimer);gameTimer=null}}
 function scheduleGameObservation(){
@@ -200,13 +202,13 @@ document.querySelectorAll(".suggestions button").forEach(b=>b.onclick=()=>{input
 input.oninput=()=>{input.style.height="auto";input.style.height=Math.min(input.scrollHeight,120)+"px"};
 input.onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("#composer").requestSubmit()}};
 
-$("#imageInput").onchange=async e=>{const file=e.target.files[0];if(!file)return;if(file.size>8e6)return alert("图片请小于 8MB");image={name:file.name,dataUrl:await readData(file)};showAttachment("image")};
+$("#imageInput").onchange=async e=>{const file=e.target.files[0];if(!file)return;if(file.size>8e6)return alert("图片大小需小于 8 MB。");image={name:file.name,dataUrl:await readData(file)};showAttachment("image")};
 function readData(file){return new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=no;r.readAsDataURL(file)})}
 function showAttachment(type){attachment.classList.remove("hidden");attachment.innerHTML=type==="image"?`<img src="${image.dataUrl}"><span>${escapeHtml(image.name)} · 图片</span><button>移除</button>`:`<span>🎙️ 语音已录好 · ${audio.name}</span><button>移除</button>`;attachment.querySelector("button").onclick=()=>{image=null;audio=null;$("#imageInput").value="";attachment.classList.add("hidden")}}
 
 $("#mic").onclick=async()=>{
   if(recorder?.state==="recording"){recorder.stop();return}
-  try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});chunks=[];recorder=new MediaRecorder(stream);recorder.ondataavailable=e=>chunks.push(e.data);recorder.onstop=async()=>{const blob=new Blob(chunks,{type:recorder.mimeType||"audio/webm"});audio={name:"voice.webm",dataUrl:await readData(blob)};stream.getTracks().forEach(t=>t.stop());$("#mic").classList.remove("recording");showAttachment("audio")};recorder.start();$("#mic").classList.add("recording")}catch{alert("无法使用麦克风，请检查浏览器权限。")}
+  try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});chunks=[];recorder=new MediaRecorder(stream);recorder.ondataavailable=e=>chunks.push(e.data);recorder.onstop=async()=>{const blob=new Blob(chunks,{type:recorder.mimeType||"audio/webm"});audio={name:"voice.webm",dataUrl:await readData(blob)};stream.getTracks().forEach(t=>t.stop());$("#mic").classList.remove("recording");showAttachment("audio")};recorder.start();$("#mic").classList.add("recording")}catch{alert("无法使用麦克风。可以在浏览器设置中查看麦克风权限。")}
 };
 
 async function sendTurn(turn={}){
@@ -217,8 +219,8 @@ async function sendTurn(turn={}){
   const userEl=!automatic?renderMsg("user",shownUserText,gameFrame?null:sentImage?.dataUrl,false):null;
   if(origin==="chat"){input.value="";input.style.height="auto";image=null;audio=null;$("#imageInput").value="";attachment.classList.add("hidden")}
   let typing=null;
-  if(!automatic){typing=document.createElement("div");typing.className="msg assistant waiting";typing.innerHTML='<img class="msg-avatar thinking-avatar" src="/christina-avatar.webp" alt="克里斯提娜头像"><div class="msg-body"><div class="message-state active"><i></i><span>正在分析</span><small>先核对事实和假设</small></div><div class="bubble typing"><i></i><i></i><i></i></div></div>';messages.append(typing);messages.scrollTop=messages.scrollHeight;startThinking(typing)}
-  const controller=new AbortController();chatController=controller;activeRequestOrigin=origin;activeRequestGame=gameRequest;desktopPet?.begin(gameFrame?"正在观察你共享的游戏画面":"先核对事实和假设");$("#send").textContent="■";$("#send").title="停止生成";
+  if(!automatic){typing=document.createElement("div");typing.className="msg assistant waiting";typing.innerHTML='<img class="msg-avatar thinking-avatar" src="/christina-avatar.webp" alt="克里斯提娜头像"><div class="msg-body"><div class="message-state active"><i></i><span>正在分析</span><small>正在核对事实和假设</small></div><div class="bubble typing"><i></i><i></i><i></i></div></div>';messages.append(typing);messages.scrollTop=messages.scrollHeight;startThinking(typing)}
+  desktopPet?.reactToText(shownUserText);const controller=new AbortController();chatController=controller;activeRequestOrigin=origin;activeRequestGame=gameRequest;desktopPet?.begin(gameFrame?"正在观察你共享的游戏画面":"正在核对事实和假设");$("#send").textContent="■";$("#send").title="停止生成";
   let out=null,full="",inputVerdict=null,outputVerdict=null,inputSaved=false;
   const registerInputSafety=verdict=>{
     if(!verdict)return;inputVerdict=verdict;applySafetyNotice(userEl,verdict);
@@ -254,4 +256,4 @@ $("#composer").onsubmit=async e=>{
 $("#export")?.addEventListener("click",()=>{const lines=["# 与克里斯提娜的对话","",...history.flatMap(x=>[`## ${x.role==="user"?"我":"克里斯提娜"}`,"",x.text,""])];const blob=new Blob([lines.join("\n")],{type:"text/markdown;charset=utf-8"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`克里斯提娜-对话-${new Date().toISOString().slice(0,10)}.md`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)});
 const memoryDialog=$("#memoryDialog");async function loadMemory(){const data=await fetch("/api/memory").then(r=>r.json());$("#memoryList").innerHTML=data.items.length?data.items.map(x=>`<div class="memory-item"><small>${{preference:"偏好",event:"事件",boundary:"边界"}[x.type]||"记忆"}</small><span>${escapeHtml(x.text)}</span><button data-id="${x.id}">删除</button></div>`).join(""):'<div class="memory-item"><span>还没有保存任何长期记忆。</span></div>';$("#memoryList").querySelectorAll("button").forEach(b=>b.onclick=async()=>{await fetch("/api/memory",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:b.dataset.id})});loadMemory()})}
 $("#memory").onclick=()=>{memoryDialog.showModal();loadMemory()};$("#closeMemory").onclick=()=>memoryDialog.close();$("#memoryForm").onsubmit=async e=>{e.preventDefault();const r=await fetch("/api/memory",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:$("#memoryType").value,text:$("#memoryText").value})}),data=await r.json();if(!r.ok){alert(data.error||"这条记忆没有保存");return}$("#memoryText").value="";if(data.safety?.action==="warn")alert("检测到敏感字段，已脱敏后保存。");loadMemory()};$("#clearMemory").onclick=async()=>{if(confirm("删除全部长期记忆吗？")){await fetch("/api/memory",{method:"DELETE",headers:{"Content-Type":"application/json"},body:"{}"});loadMemory()}};$("#clearCache").onclick=async()=>{await fetch("/api/cache/clear",{method:"POST"});$("#clearCache").textContent="已释放"};
-$("#clear").onclick=()=>{if(!confirm("清空当前对话并重新开始吗？"))return;if(gameStream||activeRequestGame)stopGameSession();chatController?.abort();chatController=null;activeRequestGame=false;stopSpeaking();history=[];image=null;audio=null;input.value="";input.style.height="auto";attachment.classList.add("hidden");document.querySelector(".waiting")?.remove();clearInterval(stateTimer);storage.remove(historyKey);desktopPet?.complete("好了，现在重新说明你的问题。尽量把条件说完整。","记录已清空");messages.innerHTML='<div class="welcome"><div class="orb avatar"><img src="/christina-avatar.webp" alt="克里斯提娜头像"></div><h2>记录已清空</h2><p>好了，现在重新说明你的问题。<br>尽量把条件说完整。</p></div>'};
+$("#clear").onclick=()=>{if(!confirm("清空当前对话并重新开始吗？"))return;if(gameStream||activeRequestGame)stopGameSession();chatController?.abort();chatController=null;activeRequestGame=false;stopSpeaking();history=[];image=null;audio=null;input.value="";input.style.height="auto";attachment.classList.add("hidden");document.querySelector(".waiting")?.remove();clearInterval(stateTimer);storage.remove(historyKey);desktopPet?.complete("对话记录已经清空。这里随时可以重新开始。","记录已清空");messages.innerHTML='<div class="welcome"><div class="orb avatar"><img src="/christina-avatar.webp" alt="克里斯提娜头像"></div><h2>记录已清空</h2><p>这里随时可以重新开始。<br>想到哪里就从哪里开始。</p></div>'};

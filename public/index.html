@@ -2,23 +2,18 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>克里斯提娜 · Amadeus</title><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/model-center.css"><link rel="stylesheet" href="/avatar.css"><link rel="stylesheet" href="/presence.css"><link rel="stylesheet" href="/message-state.css"><link rel="stylesheet" href="/enhancements.css">
+  <title>克里斯提娜 · Amadeus</title><link rel="stylesheet" href="/style.css?v=20260828.1"><link rel="stylesheet" href="/model-center.css?v=20260828.1"><link rel="stylesheet" href="/avatar.css?v=20260828.1"><link rel="stylesheet" href="/presence.css?v=20260828.1"><link rel="stylesheet" href="/message-state.css?v=20260828.1"><link rel="stylesheet" href="/enhancements.css?v=20260828.1">
 </head>
 <body>
   <main class="shell">
-    <aside class="side">
-      <div class="brand"><div class="orb small avatar"><img src="/christina-avatar.webp" alt="克里斯提娜头像"></div><div><b>克里斯提娜</b><span>牧濑红莉西 · LabMem 004</span></div></div>
-      <div id="privacyState" class="privacy">🔒 本地优先 · 不会自动回退云端</div>
-      <div id="safetyStatus" class="safety-status" data-mode="local" role="status" aria-live="polite">正在确认安全检查状态…</div>
-    </aside>
     <section class="chat">
-      <header><div><h1>连接已建立</h1><p><i></i><span id="status">正在确认运行环境…</span></p></div><div class="header-actions"><button id="voiceMode" title="切换语音模式">语音：关</button><button id="desktopPet" title="打开桌宠" aria-pressed="false">桌宠</button><button id="gameMode" title="打开游戏陪玩" aria-haspopup="dialog" aria-controls="gameDialog" aria-expanded="false" aria-pressed="false">陪玩</button><button id="memory">记忆</button><button id="models">模型</button><button id="clear" title="清空对话">重新开始</button></div></header>
+      <header><div class="connection-block"><h1>连接已建立</h1><p><i></i><span id="status">正在确认运行环境…</span></p><div class="runtime-badges"><span id="privacyState" class="privacy" role="status" aria-live="polite">正在确认处理模式…</span><span id="safetyStatus" class="safety-status" data-mode="local" role="status" aria-live="polite">正在确认安全检查状态…</span></div></div><div class="header-actions"><button id="voiceMode" title="切换语音模式">语音：关</button><button id="desktopPet" title="打开桌宠" aria-pressed="false">桌宠</button><button id="gameMode" title="打开游戏陪玩" aria-haspopup="dialog" aria-controls="gameDialog" aria-expanded="false" aria-pressed="false">陪玩</button><button id="memory">记忆</button><button id="models">模型</button><button id="clear" title="清空对话">重新开始</button></div></header>
       <section id="gameSessionBar" class="game-session hidden" aria-live="polite">
         <i aria-hidden="true"></i><div><b id="gameState">陪玩未开始</b><small id="gameStateDetail">尚未选择游戏窗口</small></div>
         <button id="gameSnapshot" type="button">看一下</button><button id="gamePause" type="button">暂停观察</button><button id="gameStop" type="button" class="danger">停止共享</button>
       </section>
       <div id="messages" class="messages">
-        <div class="welcome"><div class="orb avatar"><img src="/christina-avatar.webp" alt="克里斯提娜头像"></div><h2>所以，找我有什么事？</h2><p>文字、图片和录音都可以。<br>先把已知条件说清楚，结论之后再讨论。</p><div class="suggestions"><button>帮我分析一个问题</button><button>我今天状态不太好</button><button>看看这张图有什么异常</button></div></div>
+        <div class="welcome"><div class="orb avatar"><img src="/christina-avatar.webp" alt="克里斯提娜头像"></div><h2>所以，今天想聊什么？</h2><p>文字、图片和录音都可以。<br>想到哪里就从哪里开始；需要结论时，我们再一起核对。</p><div class="suggestions"><button>帮我分析一个问题</button><button>我今天状态不太好</button><button>看看这张图有什么异常</button></div></div>
       </div>
       <div id="attachment" class="attachment hidden"></div>
       <form id="composer" class="composer">
@@ -47,5 +42,5 @@
     <div class="game-actions"><button id="chooseGameWindow" type="button" class="primary" disabled>选择游戏窗口</button><button id="gameAnalyzeNow" type="button" disabled>分析当前画面</button><button id="gameStopDialog" type="button" class="danger" disabled>停止共享</button></div>
     <small class="game-boundary">仅提供可见信息分析、一般策略、解谜提示和赛后复盘；不做内存读取、宏、自动瞄准、敌位追踪或反作弊绕过。</small>
   </div></dialog>
-  <script type="module" src="/app.js"></script>
+  <script type="module" src="/app.js?v=20260828.5"></script>
 </body></html>

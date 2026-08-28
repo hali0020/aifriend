@@ -1,9 +1,12 @@
-const { app, BrowserWindow, crashReporter, desktopCapturer, dialog, ipcMain, screen, session, utilityProcess } = require("electron");
+const { app, BrowserWindow, crashReporter, desktopCapturer, dialog, ipcMain, screen, session, shell, utilityProcess } = require("electron");
 const { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } = require("node:fs");
+const { lstat } = require("node:fs/promises");
 const { createHash, randomUUID } = require("node:crypto");
-const { join } = require("node:path");
+const { basename, join, resolve } = require("node:path");
 const { classifyEdgeState, isEdgeState } = require("./edge-state.cjs");
 const { createDiagnostics } = require("./diagnostics.cjs");
+const { createFileTrashIpcHandler, createFileTrashService } = require("./file-trash-service.cjs");
+const { createPetRoamMoveGuard, nextPetRoamBounds } = require("./pet-roam.cjs");
 const { resolveDesktopServerPaths, resolveDesktopSessionDataRoot, resolveLocalApplicationDataRoot } = require("./server-runtime.cjs");
 const { buildWindowSourcePage, resolveWindowSourceChoice } = require("./window-source-pager.cjs");
 const squirrelStartup = require("electron-squirrel-startup");
@@ -14,6 +17,8 @@ const SERVER_ENTRY = join(RESOURCE_ROOT, "server.js");
 const LOCAL_DATA_ROOT = resolveLocalApplicationDataRoot({ environment: process.env, userDataRoot: app.getPath("userData") });
 app.setPath("sessionData", resolveDesktopSessionDataRoot(LOCAL_DATA_ROOT));
 const diagnostics = createDiagnostics({ app, crashReporter, localDiagnosticsRoot: join(LOCAL_DATA_ROOT, "diagnostics") });
+const fileTrashService = createFileTrashService({ dialog, shell, lstat, resolve, basename });
+const petRoamMoveGuard = createPetRoamMoveGuard();
 if (!squirrelStartup) diagnostics.initializeEarly();
 
 let appOrigin = "";
@@ -31,8 +36,11 @@ let lastPetBounds = null;
 let lastSentPetEdgeState = null;
 let petEdgeSettleTimer = null;
 let petEdgeTrackedWindow = null;
+let petRoamTimer = null;
+let petRoamPausedUntil = 0;
 
 const PET_EDGE_SETTLE_MS = 80;
+const PET_ROAM_MANUAL_PAUSE_MS = 30_000;
 
 app.enableSandbox();
 
@@ -297,6 +305,37 @@ function schedulePetEdgeSync(window) {
   }, PET_EDGE_SETTLE_MS);
 }
 
+function clearPetRoamTimer() {
+  if (petRoamTimer !== null) clearTimeout(petRoamTimer);
+  petRoamTimer = null;
+}
+
+function schedulePetRoam(window, delayMs = 8000 + Math.round(Math.random() * 6000)) {
+  clearPetRoamTimer();
+  if (window !== petWindow || !isLive(window) || quitting) return;
+  petRoamTimer = setTimeout(() => {
+    petRoamTimer = null;
+    if (window !== petWindow || !isVerifiedPetRenderer(window) || !window.isVisible()) return;
+    const remainingPause = petRoamPausedUntil - Date.now();
+    if (remainingPause > 0) return schedulePetRoam(window, remainingPause + 1000);
+    if (window.isFocused()) return schedulePetRoam(window, 3000);
+    try {
+      const bounds = window.getBounds();
+      const workArea = screen.getDisplayMatching(bounds)?.workArea;
+      const target = nextPetRoamBounds(bounds, workArea, Math.random(), Math.random());
+      if (target && (target.x !== bounds.x || target.y !== bounds.y)) {
+        petRoamMoveGuard.mark(target);
+        window.setBounds(target, false);
+        lastPetBounds = target;
+      }
+    } catch {
+      petRoamMoveGuard.reset();
+    }
+    schedulePetRoam(window);
+  }, Math.max(1000, delayMs));
+  petRoamTimer.unref?.();
+}
+
 function placePetWindow(window) {
   if (!isLive(window)) return;
   const { width, height } = window.getBounds();
@@ -442,16 +481,25 @@ function createPetWindow() {
   window.webContents.on("did-fail-load", (_event, code, description, _url, isMainFrame) => {
     if (isMainFrame !== false && code !== -3) recoverPetWindow(window, `页面加载失败：${description || code}`);
   });
-  window.on("will-move", () => {
+  window.on("will-move", (_event, nextBounds) => {
+    if (!petRoamMoveGuard.isProgrammatic(nextBounds)) {
+      petRoamPausedUntil = Date.now() + PET_ROAM_MANUAL_PAUSE_MS;
+      clearPetRoamTimer();
+    }
     notifyPetMoving(window);
   });
   window.on("moved", () => {
     if (!window.isDestroyed()) {
-      lastPetBounds = window.getBounds();
+      const currentBounds = window.getBounds();
+      const programmatic = petRoamMoveGuard.consume(currentBounds);
+      lastPetBounds = currentBounds;
       schedulePetEdgeSync(window);
+      schedulePetRoam(window, programmatic ? undefined : PET_ROAM_MANUAL_PAUSE_MS);
     }
   });
   window.on("closed", () => {
+    clearPetRoamTimer();
+    petRoamMoveGuard.reset();
     petRendererReady = false;
     resetPetEdgeTracking(window);
     failPendingPetReady(window, new Error("桌宠窗口已关闭。"));
@@ -477,6 +525,7 @@ async function showPetWindow() {
     petWindow.focus();
     petWindow.moveTop();
     notifyPetVisibility(true);
+    schedulePetRoam(petWindow);
     return true;
   }
   if (isLive(petWindow)) petWindow.destroy();
@@ -494,6 +543,7 @@ async function showPetWindow() {
     window.moveTop();
     await ready;
     notifyPetVisibility(true);
+    schedulePetRoam(window);
     return true;
   } catch (error) {
     failPendingPetReady(window, error);
@@ -542,6 +592,11 @@ function registerIpc() {
       return { ok: false, code: "pet-start-failed", message: String(error?.message || error).slice(0, 300) };
     }
   });
+  ipcMain.handle("desktop-pet:trash-file", createFileTrashIpcHandler({
+    isTrustedHost: event => trustedSender(event, hostWindow, hostUrl),
+    chooseAndTrashFile: fileTrashService.chooseAndTrashFile,
+    getParentWindow: () => hostWindow,
+  }));
   ipcMain.handle("desktop-pet:open-main", event => {
     if (!trustedSender(event, petWindow, petUrl)) return { ok: false, code: "forbidden" };
     return { ok: showHostWindow() };
@@ -712,6 +767,7 @@ app.on("before-quit", () => {
   quitting = true;
   diagnostics.record("app_before_quit", { processType: "browser" });
   resetPetEdgeTracking();
+  clearPetRoamTimer();
   stopManagedServer();
 });
 

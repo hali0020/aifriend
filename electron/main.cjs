@@ -1,10 +1,20 @@
-const { app, BrowserWindow, desktopCapturer, dialog, ipcMain, screen, session, utilityProcess } = require("electron");
-const { join, resolve } = require("node:path");
+const { app, BrowserWindow, crashReporter, desktopCapturer, dialog, ipcMain, screen, session, utilityProcess } = require("electron");
+const { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } = require("node:fs");
+const { createHash, randomUUID } = require("node:crypto");
+const { join } = require("node:path");
 const { classifyEdgeState, isEdgeState } = require("./edge-state.cjs");
+const { createDiagnostics } = require("./diagnostics.cjs");
+const { resolveDesktopServerPaths, resolveDesktopSessionDataRoot, resolveLocalApplicationDataRoot } = require("./server-runtime.cjs");
+const { buildWindowSourcePage, resolveWindowSourceChoice } = require("./window-source-pager.cjs");
+const squirrelStartup = require("electron-squirrel-startup");
 
 const SESSION_PARTITION = "persist:amadeus";
-const APP_ROOT = resolve(__dirname, "..");
-const SERVER_ENTRY = join(APP_ROOT, "server.js");
+const RESOURCE_ROOT = app.getAppPath();
+const SERVER_ENTRY = join(RESOURCE_ROOT, "server.js");
+const LOCAL_DATA_ROOT = resolveLocalApplicationDataRoot({ environment: process.env, userDataRoot: app.getPath("userData") });
+app.setPath("sessionData", resolveDesktopSessionDataRoot(LOCAL_DATA_ROOT));
+const diagnostics = createDiagnostics({ app, crashReporter, localDiagnosticsRoot: join(LOCAL_DATA_ROOT, "diagnostics") });
+if (!squirrelStartup) diagnostics.initializeEarly();
 
 let appOrigin = "";
 let hostUrl = "";
@@ -44,8 +54,43 @@ function originOf(rawUrl) {
   }
 }
 
+function sha256(value) {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+function prepareTranscribeScript(paths) {
+  const source = readFileSync(paths.sourceTranscribeScript);
+  const digest = sha256(source);
+  if (!app.isPackaged) return { path: paths.sourceTranscribeScript, digest };
+  mkdirSync(paths.extractedTranscribeRoot, { recursive: true });
+  const target = join(paths.extractedTranscribeRoot, `transcribe-${digest.slice(0, 16)}.py`);
+  if (existsSync(target) && sha256(readFileSync(target)) === digest) return { path: target, digest };
+  const temporary = join(paths.extractedTranscribeRoot, `.transcribe-${process.pid}-${randomUUID()}.tmp`);
+  writeFileSync(temporary, source, { flag: "wx", mode: 0o600 });
+  if (sha256(readFileSync(temporary)) !== digest) throw new Error("语音转写脚本提取校验失败");
+  rmSync(target, { force: true });
+  renameSync(temporary, target);
+  return { path: target, digest };
+}
+
 function serverEnvironment() {
-  const environment = { ...process.env, PORT: "0" };
+  const userDataRoot = app.getPath("userData");
+  const paths = resolveDesktopServerPaths({
+    isPackaged: app.isPackaged,
+    resourceRoot: RESOURCE_ROOT,
+    userDataRoot,
+    localDataRoot: LOCAL_DATA_ROOT,
+  });
+  const transcriber = prepareTranscribeScript(paths);
+  const environment = {
+    ...process.env,
+    PORT: "0",
+    AGENT_RESOURCE_ROOT: RESOURCE_ROOT,
+    AGENT_USER_DATA_ROOT: paths.userDataRoot,
+    AGENT_MODELS_ROOT: paths.modelsRoot,
+    AGENT_TRANSCRIBE_SCRIPT: transcriber.path,
+    AGENT_TRANSCRIBE_SHA256: transcriber.digest,
+  };
   delete environment.NODE_OPTIONS;
   delete environment.NODE_PATH;
   delete environment.ELECTRON_RUN_AS_NODE;
@@ -81,6 +126,27 @@ function trustedSender(event, expectedWindow, expectedUrl) {
   return samePage(event.senderFrame.url, expectedUrl) && samePage(event.sender.getURL(), expectedUrl);
 }
 
+async function chooseDesktopWindowSource(sources) {
+  let page = 0;
+  while (true) {
+    const view = buildWindowSourcePage(sources, page);
+    const choice = await dialog.showMessageBox(hostWindow, {
+      type: "question",
+      title: "选择游戏窗口",
+      message: `只选择需要陪玩的游戏窗口（第 ${view.page + 1}/${view.pageCount} 页）`,
+      detail: "模型只会收到你手动或按设定间隔触发的离散截图；不会读取其他窗口。",
+      buttons: view.buttons,
+      cancelId: view.cancelId,
+      defaultId: view.cancelId,
+      noLink: true
+    });
+    const resolved = resolveWindowSourceChoice(view, choice.response);
+    if (resolved.action === "select") return resolved.source;
+    if (resolved.action === "page") { page = resolved.page; continue; }
+    return null;
+  }
+}
+
 function configureSession() {
   const desktopSession = session.fromPartition(SESSION_PARTITION);
   const trustedHostRequest = (webContents, requestingUrl = "") =>
@@ -112,20 +178,10 @@ function configureSession() {
     }
     try {
       const allSources = await desktopCapturer.getSources({ types: ["window"], thumbnailSize: { width: 0, height: 0 }, fetchWindowIcons: false });
-      const sources = allSources.filter(source => !/克里斯提娜|Amadeus/i.test(source.name)).slice(0, 24);
+      const sources = allSources.filter(source => !/克里斯提娜|Amadeus/i.test(source.name));
       if (!sources.length) return callback({});
-      const cancelId = sources.length;
-      const choice = await dialog.showMessageBox(hostWindow, {
-        type: "question",
-        title: "选择游戏窗口",
-        message: "只选择需要陪玩的游戏窗口",
-        detail: "模型只会收到你手动或按设定间隔触发的离散截图；不会读取其他窗口。",
-        buttons: [...sources.map(source => source.name || "未命名窗口"), "取消"],
-        cancelId,
-        defaultId: cancelId,
-        noLink: true
-      });
-      callback(choice.response >= 0 && choice.response < sources.length ? { video: sources[choice.response] } : {});
+      const selected = await chooseDesktopWindowSource(sources);
+      callback(selected ? { video: selected } : {});
     } catch {
       callback({});
     }
@@ -339,6 +395,7 @@ function createHostWindow() {
     })
   });
   window.webContents.setBackgroundThrottling(false);
+  diagnostics.monitorWindow(window, "host");
   hardenNavigation(window, hostUrl);
   window.on("close", event => {
     if (!quitting && isLive(petWindow)) {
@@ -376,6 +433,7 @@ function createPetWindow() {
     })
   });
   window.setAlwaysOnTop(true, "floating");
+  diagnostics.monitorWindow(window, "pet");
   window.webContents.setBackgroundThrottling(false);
   hardenNavigation(window, petUrl);
   window.webContents.on("render-process-gone", (_event, details) => recoverPetWindow(window, `渲染器退出：${details?.reason || "未知原因"}`));
@@ -498,6 +556,7 @@ function registerIpc() {
 
 function handleUnexpectedServerExit(detail) {
   if (quitting) return;
+  diagnostics.record("server_unexpected_exit", { detail });
   petRendererReady = false;
   if (isLive(petWindow)) petWindow.destroy();
   notifyPetVisibility(false);
@@ -507,7 +566,7 @@ function handleUnexpectedServerExit(detail) {
       type: "error",
       title: "本地服务已停止",
       message: "桌宠的本地服务意外停止。",
-      detail: `${String(detail || "未知原因").slice(0, 220)}\n请退出后重新运行 npm run desktop。`,
+      detail: `${String(detail || "未知原因").slice(0, 220)}\n${app.isPackaged ? "请退出后从开始菜单重新打开 Amadeus Local Companion。" : "请退出后重新运行 npm run desktop。"}`,
       buttons: ["知道了"],
       noLink: true
     });
@@ -516,12 +575,17 @@ function handleUnexpectedServerExit(detail) {
 
 function launchPrivateServer() {
   return new Promise((resolveLaunch, rejectLaunch) => {
+    const environment = serverEnvironment();
+    const userDataRoot = environment.AGENT_USER_DATA_ROOT;
+    mkdirSync(userDataRoot, { recursive: true });
     const child = utilityProcess.fork(SERVER_ENTRY, [], {
-      cwd: APP_ROOT,
-      env: serverEnvironment(),
-      stdio: "ignore",
+      cwd: userDataRoot,
+      env: environment,
+      stdio: "pipe",
       serviceName: "Amadeus Local Server"
     });
+    child.stdout?.resume?.();
+    diagnostics.monitorServerStderr(child.stderr);
     managedServer = child;
     let settled = false;
     const timeout = setTimeout(() => fail(new Error("本地服务未能在 20 秒内报告可用端口。")), 20_000);
@@ -548,7 +612,8 @@ function launchPrivateServer() {
       clearTimeout(timeout);
       resolveLaunch();
     });
-    child.once("error", (type, location) => {
+    child.once("error", (type, location, report) => {
+      diagnostics.recordUtilityError(type, location, report);
       const message = `本地服务进程异常：${type}${location ? ` · ${location}` : ""}`;
       if (!settled) fail(new Error(message));
       else {
@@ -557,6 +622,7 @@ function launchPrivateServer() {
       }
     });
     child.once("exit", code => {
+      diagnostics.record("server_exit", { exitCode: code, processType: "utility" });
       const wasManaged = managedServer === child;
       if (wasManaged) managedServer = null;
       if (!settled) fail(new Error(`本地服务提前退出（代码 ${code}）。`));
@@ -605,7 +671,7 @@ function startDesktop() {
   return startingDesktop;
 }
 
-const singleInstance = app.requestSingleInstanceLock();
+const singleInstance = !squirrelStartup && app.requestSingleInstanceLock();
 if (!singleInstance) {
   app.quit();
 } else {
@@ -620,7 +686,7 @@ if (!singleInstance) {
     }
   });
   app.whenReady().then(() => {
-    if (process.platform === "win32") app.setAppUserModelId("local.amadeus.christina");
+    if (process.platform === "win32") app.setAppUserModelId("com.squirrel.AmadeusLocalCompanion.AmadeusLocalCompanion");
     const keepPetOnScreen = () => {
       if (isLive(petWindow)) placePetWindow(petWindow);
     };
@@ -644,6 +710,7 @@ app.on("activate", () => {
 
 app.on("before-quit", () => {
   quitting = true;
+  diagnostics.record("app_before_quit", { processType: "browser" });
   resetPetEdgeTracking();
   stopManagedServer();
 });

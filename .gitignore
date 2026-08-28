@@ -30,6 +30,7 @@ venv/
 *.pfx
 credentials*.json
 secrets*.json
+release.local.cjs
 
 # Audio files stay local; only their usage notes are versioned
 audio/*
@@ -53,7 +54,11 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 coverage/
+out/
+diagnostics/
 *.log
+*.dmp
+*.dump
 *.tmp
 *.pid
 *.part

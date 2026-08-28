@@ -7,6 +7,9 @@ import numpy as np
 from PIL import Image
 
 
+TRANSPARENT_PADDING = 8
+
+
 def convert(input_path: Path, output_path: Path) -> None:
     rgb = np.asarray(Image.open(input_path).convert("RGB"), dtype=np.float32)
     red, green, blue = rgb[..., 0], rgb[..., 1], rgb[..., 2]
@@ -32,8 +35,18 @@ def convert(input_path: Path, output_path: Path) -> None:
     foreground[alpha == 0.0] = 0.0
 
     rgba = np.dstack((foreground, alpha[..., None] * 255.0)).round().astype(np.uint8)
+    converted = Image.fromarray(rgba, "RGBA")
+    padded = Image.new(
+        "RGBA",
+        (
+            converted.width + TRANSPARENT_PADDING * 2,
+            converted.height + TRANSPARENT_PADDING * 2,
+        ),
+        (0, 0, 0, 0),
+    )
+    padded.alpha_composite(converted, (TRANSPARENT_PADDING, TRANSPARENT_PADDING))
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    Image.fromarray(rgba, "RGBA").save(output_path)
+    padded.save(output_path)
 
 
 def main() -> None:

@@ -412,6 +412,36 @@
       "id": 82,
       "state": "adjusting-coat-lapels-ready",
       "file": "makise-kurisu-chibi-82-adjusting-coat-lapels-ready.png"
+    },
+    {
+      "id": 83,
+      "state": "sleepy-rubbing-one-eye",
+      "file": "makise-kurisu-chibi-83-sleepy-rubbing-one-eye.png"
+    },
+    {
+      "id": 84,
+      "state": "checking-pulse",
+      "file": "makise-kurisu-chibi-84-checking-pulse.png"
+    },
+    {
+      "id": 85,
+      "state": "pinching-nose-bridge",
+      "file": "makise-kurisu-chibi-85-pinching-nose-bridge.png"
+    },
+    {
+      "id": 86,
+      "state": "cross-body-shoulder-stretch",
+      "file": "makise-kurisu-chibi-86-cross-body-shoulder-stretch.png"
+    },
+    {
+      "id": 87,
+      "state": "one-hand-beckoning",
+      "file": "makise-kurisu-chibi-87-one-hand-beckoning.png"
+    },
+    {
+      "id": 88,
+      "state": "cupped-hands-calling",
+      "file": "makise-kurisu-chibi-88-cupped-hands-calling.png"
     }
   ]
 }

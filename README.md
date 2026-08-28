@@ -20,23 +20,25 @@
 | AI 路由 | 默认使用本机 Ollama；云端生成只能由用户显式选择 |
 | 多模态 | 文字、静态图片、按需语音识别、游戏窗口离散截帧 |
 | 本地模型 | Qwen2.5 / Qwen3 / DeepSeek R1 / Qwen3-VL，可在模型中心切换与下载 |
-| 隐私设计 | 仅监听本机回环接口；游戏截图禁止远传且不落盘；本地模式不会自动回退云端 |
-| 安全设计 | 输入与完整输出双向检查、凭据脱敏、危机支持、严格媒体解析和限流 |
+| 隐私设计 | 仅监听本机回环接口；Ollama 只接受字面量回环地址；游戏截图禁止远传且不落盘 |
+| 安全设计 | 文本双向检查、本地图像语义门、凭据脱敏、危机支持、严格媒体解析和限流 |
 | 桌面安全 | renderer sandbox、context isolation、禁用 Node.js、窄 IPC、来源校验、导航阻断 |
-| 工程验证 | 85 个 Node 自动化测试 + 冒烟测试 + Python 语料/素材验证 |
+| 工程验证 | 137 个 Node 自动化测试 + 冒烟测试 + Python 语料/素材验证 + 安装包内容/Fuse 审计 |
 
 ## 为什么值得作为面试作品展示
 
 ### 1. 本地优先是代码约束，不是宣传语
 
 - 默认对话走本机 Ollama。
-- 本地模型不可用时进入演示状态，不会偷偷把内容发到云端。
+- 默认“仅本地”模式在 Ollama 不可用时会明确报错，不会伪装成演示状态，更不会偷偷把内容发到云端；只有手动选择“本地优先”或“演示模式”才会使用演示回复。
 - 云端生成和 OpenAI Moderation 分别需要显式配置与开启。
 - 游戏画面路径强制 `allowRemote: false`，即使普通聊天启用了远端复核也不会改变。
+- `OLLAMA_URL` 只接受 `http://127.0.0.1` 或 `http://[::1]`，拒绝主机名、局域网地址、凭据、路径和查询参数，防止“本地模型”配置实际把内容发往其他机器。
 
 ### 2. 安全检查覆盖模型调用前后
 
 - 用户输入在进入模型前分类、阻断或脱敏。
+- 所有图片先经过同一台本机上的结构校验和独立语义安全判定；模型缺失、超时、输出不完整或结论不确定时失败即拒绝。
 - 模型完整输出先在内存中缓冲，通过输出检查后才显示。
 - 被判定为 `support` 或 `block` 的原文不写入历史。
 - 对密码、令牌、手机号、邮箱等内容应用本地检测与脱敏。
@@ -50,13 +52,15 @@
 - preload 只暴露桌宠显示、关闭、返回主界面和边缘状态等窄接口。
 - IPC 同时校验 sender、页面来源、参数类型和固定枚举。
 - Electron 每次启动独立的本地服务子进程，并使用系统分配的临时端口。
+- 打包版将只读应用资源、可写用户数据和外部模型目录分离；Forge 配置显式排除模型、音频、授权原文、隔离区、密钥和运行时状态。
 
 ### 4. 游戏陪玩采用可解释的隐私模型
 
-- 用户必须主动选择窗口；默认只在点击后分析一帧。
+- 用户必须主动选择窗口；普通浏览器拒绝整屏/标签页，Electron 使用分页的原生窗口选择器；默认只在点击后分析一帧。
 - 可选 30 / 60 / 120 秒低频观察，画面变化很小时跳过模型调用。
 - 截图压缩到最长边 1280px，并受 2MB、300 万像素、单并发与频率限制。
-- 画面只交给本地 `qwen3-vl:4b`，不保存到磁盘，也不进入普通对话历史。
+- 画面先由本地语义安全门检查，再交给本地 `qwen3-vl:4b`；不保存到磁盘，也不读取或污染普通对话历史。
+- 切换窗口取消时保留原共享；停止后会中止分析、卸载实际使用的视觉模型并通过 Ollama 运行列表确认释放结果。
 - 不读取游戏内存、不控制键鼠、不提供隐藏信息或反作弊绕过。
 
 ### 5. 素材与训练数据有明确合规边界
@@ -80,8 +84,10 @@ flowchart LR
     CLOUD --> OUT
     OUT --> UI
 
+    UI -->|ordinary image| IMG[Local image semantic gate]
     UI -->|selected window + discrete JPEG| GAME[Game analysis path]
-    GAME -->|local only| VLM[Qwen3-VL]
+    GAME --> IMG
+    IMG -->|local only, fail closed| VLM[Qwen3-VL]
     VLM --> OUT
 
     API <--> MEMORY[(Local memory JSON)]
@@ -97,14 +103,14 @@ flowchart LR
 | 模型中心 | 探测、下载、切换 Ollama 模型 | 流式下载进度、运行状态、语言/视觉模型分离 |
 | 长期记忆 | 本地保存偏好、事件和边界 | 保存和调用前均检查；作为非可信用户数据注入 |
 | 语音 | faster-whisper tiny + 系统 TTS | 识别进程按需启动并退出；朗读由用户手动开启 |
-| 游戏陪玩 | 手动/低频截图分析 | 本地视觉模型、变化检测、无剧透模式、显存释放 |
-| 桌面宠物 | 透明置顶、拖动、边缘姿态 | 82 个静态姿态、84 帧动画、目录驱动的按需加载 |
-| 安全服务 | 本地策略 + 可选远端复核 | 双向检查、凭据脱敏、危机支持、远端失败时停止 |
+| 游戏陪玩 | 手动/低频截图分析 | 仅窗口捕获、变化检测、降低剧透、独立历史、可验证显存释放 |
+| 桌面宠物 | 透明置顶、拖动、边缘姿态 | 88 个静态姿态、84 帧动画、目录驱动的按需加载 |
+| 安全服务 | 本地策略 + 可选远端复核 | 文本双向检查、本地图像语义门、凭据脱敏、危机支持、失败关闭 |
 | 素材管线 | 语料构建与桌宠资源验证 | 权利确认、来源记录、媒体真格式检查、原子目录同步 |
 
 ## 技术栈
 
-- Runtime: Node.js 20+
+- Runtime: Node.js 22.12+
 - Desktop: Electron 43
 - Frontend: Vanilla JavaScript, HTML, CSS
 - Local AI: Ollama
@@ -119,8 +125,8 @@ flowchart LR
 
 ### 环境要求
 
-- Node.js 20+
-- Python 3（运行语料和素材验证时需要）
+- Node.js 22.12+
+- Python 3（运行语料/素材验证时需要；使用本地语音识别还需安装 `faster-whisper`）
 - [Ollama](https://ollama.com/)（使用本地模型时需要）
 - Windows 10/11（Electron 桌宠当前主要验证平台）
 
@@ -147,6 +153,17 @@ ollama pull qwen3-vl:4b
 ```
 
 也可以启动应用后在“模型中心”中下载和切换模型。
+
+Ollama 地址如需覆盖，只能使用字面量回环地址，例如 `OLLAMA_URL=http://127.0.0.1:11434`；不会接受 `localhost`、局域网或公网代理地址。
+
+本地语音识别是可选组件。它会把 Python 解析为绝对路径并按需检查 `faster-whisper`；未就绪时模型中心会显示具体原因，不影响文字、图片或游戏功能。安装版不会捆绑或静默下载 Python。
+
+```powershell
+python -m pip install faster-whisper
+python -c "from huggingface_hub import snapshot_download; snapshot_download('Systran/faster-whisper-tiny', local_dir=r'models\speech\faster-whisper-tiny')"
+```
+
+开发版从项目的 `models\speech\faster-whisper-tiny` 读取模型；安装版路径是 `%LOCALAPPDATA%\Amadeus Local Companion\models\speech\faster-whisper-tiny`，下载时请相应替换 `local_dir`。如自动发现不正确，可把 `AGENT_PYTHON_EXECUTABLE` 设置为可信 Python 可执行文件的绝对路径。
 
 ### 3. 可选：配置本地用户资料
 
@@ -176,6 +193,27 @@ npm run desktop
 
 请从自己的 Windows PowerShell 运行。桌面启动脚本会拒绝受限自动化账户，但 Electron 自身仍保留 renderer sandbox、上下文隔离和 IPC 校验。
 
+若要调查 Electron/GPU/renderer 原生崩溃，可显式开启纯本地诊断模式：
+
+```powershell
+npm run desktop:diagnose
+```
+
+诊断模式才会启用本地 Crashpad dump、脱敏后的 `events.jsonl` 和 Chromium 直接写入的 `chromium-raw.log`；不上传，并自动限制数量、大小和保留时间。JSONL 会过滤路径、邮箱和常见凭据赋值，但原始 Chromium 日志可能包含本机路径、URL 或控制台内容，dump 也可能包含进程内存片段；提交 issue 前必须由用户人工检查，不能直接公开整个诊断目录。
+
+### 6. 制作 Windows 安装包
+
+```powershell
+npm run make:desktop
+npm run audit:package
+```
+
+Forge/Squirrel 会在 `out/make/squirrel.windows/x64/` 生成 `Setup.exe`、`.nupkg` 和 `RELEASES`。构建前只接受与 npm 锁定 `checksums.json` 相符的 Electron 官方 ZIP，并使用固定 SHA-256 的 NuGet 6.11.1，避免 Squirrel 内置 NuGet 2.8 的大 ASAR 打包故障；这些缓存都在 `downloads/`，不会提交。构建后审计严格运行时白名单、全部应用源文件哈希、HTML/JS 依赖、私密文件边界和 Electron Fuses。`audit:package` 默认选择 `out/` 中最新的 Windows 应用目录，也可用 `npm run audit:package -- <目录>` 指定。
+
+公开配置使用中性的发布者名称和固定 Electron 版本图标。若本地构建需要私有发布者标签或不可变图标 URL，把 `release.local.example.cjs` 复制成被 Git 忽略的 `release.local.cjs` 后填写；该文件不会进入应用包。
+
+当前开发安装包未签名，只适合本机测试，不应作为正式下载发布。正式发布必须先配置由仓库外 secret 管理的 Windows 代码签名，再用两个已签名版本完成更新链验收；项目在此之前不会启用自动更新。
+
 云端生成与远端安全复核均为显式启用的可选能力。仓库不提供、读取或提交任何真实凭据；游戏截图始终不会发送到远端。
 
 ## 验证
@@ -186,15 +224,16 @@ npm run desktop
 npm run check
 ```
 
-当前覆盖 98 个 Node 测试，重点验证：
+当前覆盖 137 个 Node 测试，重点验证：
 
 - 安全判定、危机支持、凭据脱敏和远端复核策略
 - 本地用户资料的严格 schema、脱敏以及云端/游戏隔离
 - 图片/音频真实格式、尺寸、动画和路径校验
+- 字面量回环 Ollama 边界、本地图像语义失败关闭和游戏会话隔离
 - 桌宠 catalog、动画 URL、边缘状态与 preload 最小接口
-- Electron 启动账户策略
+- Electron 启动账户策略、运行时路径分离、结构化诊断日志脱敏、包边界和 Fuse
 
-完整集成验收会调用实际本地服务、语言模型、视觉模型和语音模型。先在一个终端运行 `npm start`，再在另一个终端执行：
+完整集成验收会调用实际本地服务、语言模型和视觉模型，并验证可选语音组件“就绪或给出明确原因”的状态契约。先在一个终端运行 `npm start`，再在另一个终端执行：
 
 ```powershell
 npm test
@@ -218,6 +257,7 @@ python scripts/test_character_corpus.py
 ├─ data/                      # 默认风格词典、本地资料空值模板及数据说明
 ├─ scripts/                   # 启动、冒烟测试、语料与素材管线
 ├─ tests/                     # Node 自动化测试
+├─ forge.config.cjs           # Windows 打包边界、Squirrel 与 Electron Fuses
 ├─ server.js                  # 本地 HTTP Agent 与模型编排
 └─ docs/                      # 开发交接与许可核查
 ```
@@ -228,19 +268,23 @@ python scripts/test_character_corpus.py
 
 - 服务只绑定回环地址，不对局域网或公网监听。
 - 本地模型不可用时不会自动把内容转交云端。
+- Ollama 连接只允许字面量 HTTP 回环地址；图片语义门始终在本机执行并失败关闭。
 - 游戏截图、游戏上下文和游戏分析永远禁止远程审核。
 - 模型输出必须先完整通过安全检查，才会显示给用户。
 - Electron renderer 不获得通用文件、shell、URL 或 IPC 权限。
 - `.env`、本地用户资料、记忆、设置、模型、音频、授权原文和隔离区不会进入版本控制。
 - 本地用户资料与长期记忆只进入本地普通聊天；云端模式和游戏陪玩不会读取它们。
 
+Electron 安装版把模型、提取后的转写脚本、诊断文件以及 Chromium `sessionData` 放在 Windows Local AppData；聊天历史、TTS/游戏偏好等浏览器存储随 `sessionData` 留在本机。设置、资料、记忆和自定义语料位于 Electron 标准 `userData`（Windows 通常是 Roaming AppData）。从旧版升级后，旧 Roaming 会话缓存不会自动复制或删除；需要清除时请先退出应用，再由用户自行删除对应旧目录。应用本身不上传这些内容，但操作系统或企业备份策略可能处理 Roaming 数据，卸载应用也未必自动删除 Local/Roaming 残留。
+
 ## 已知限制
 
-- 当前是 Windows 优先的产品原型，尚未制作安装包、代码签名、自动更新和崩溃转储收集。
-- Electron 自动化检查已通过，但仍需要更长时间的真实 GUI 稳定性测试。
-- 游戏陪玩仍属实验功能，效果受硬件、模型和具体游戏画面影响。
-- 本地安全层目前不做图像语义分类；普通聊天图片只有在用户显式开启时才可远程复核。
-- 当前朗读使用系统语音，不包含也不宣称使用官方角色音色。
+- Windows Squirrel 安装包、包内容审计和本地崩溃诊断已实现，但开发产物尚未代码签名；自动更新因此保持禁用。
+- Electron 自动化检查已通过，仍需要在用户真实 GPU、多显示器、休眠唤醒环境做长时间稳定性测试；本地 dump 只为归因提供证据，不保证自动定位原生崩溃。
+- 游戏陪玩仍属实验功能，效果受硬件、视觉模型和具体游戏画面影响。“降低剧透”是提示与会话隔离约束，不是对任意模型输出的绝对保证。
+- 本地图像语义门目前复用通用视觉模型，是失败关闭的最小安全实现，不等同于经过专门评测的生产级视觉审核分类器；上传图片仍建议避免包含个人信息。
+- 完整 `npm audit` 仍会报告 Electron Forge 构建链中 `extract-zip` 的上游开发依赖告警；生产依赖审计为 0。不要用 `npm audit fix --force` 降级 Forge。
+- 当前朗读使用系统语音，不包含也不宣称使用官方角色音色；仓库也不包含原作音频或完整台词。
 
 ## 项目状态与权利说明
 

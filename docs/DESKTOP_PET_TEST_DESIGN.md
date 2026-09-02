@@ -42,7 +42,7 @@ npm run test:desktop
 npm run check
 ```
 
-当前 `npm run check` 基线为 189 个 Node 测试；测试数量变化时以实际输出为准，并同步本文和交接文档。
+当前 `npm run check` 基线为 244 个 Node 测试；测试数量变化时以实际输出为准，并同步本文和交接文档。
 
 需要服务与真实页面时：
 

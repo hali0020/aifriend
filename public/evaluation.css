@@ -1,0 +1,297 @@
+.evaluation-dialog {
+  width: min(1120px, 96vw);
+  max-height: 92vh;
+  overflow: hidden;
+}
+
+.evaluation-content {
+  display: grid;
+  gap: 14px;
+  max-height: calc(92vh - 82px);
+  overflow-y: auto;
+  padding: 18px 22px 24px;
+}
+
+.evaluation-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.evaluation-summary article {
+  display: grid;
+  gap: 3px;
+  padding: 13px 15px;
+  border: 1px solid #e1e6e2;
+  border-radius: 13px;
+  background: #f7f8f5;
+}
+
+.evaluation-summary b { font-size: 20px; }
+.evaluation-summary span { color: var(--muted); font-size: 10px; }
+
+.evaluation-principle {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 13px;
+  border: 1px solid #e7d6a9;
+  border-radius: 12px;
+  background: #fff9e8;
+  color: #725f27;
+}
+
+.evaluation-principle b { font-size: 12px; }
+.evaluation-principle span { font-size: 11px; line-height: 1.55; }
+
+.evaluation-tabs {
+  display: flex;
+  gap: 5px;
+  padding: 4px;
+  border-radius: 11px;
+  background: #eef1ed;
+}
+
+.evaluation-tabs button {
+  flex: 1;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  padding: 8px 12px;
+  color: #65736b;
+  cursor: pointer;
+}
+
+.evaluation-tabs button.active {
+  background: white;
+  color: var(--ink);
+  box-shadow: 0 3px 10px #42524712;
+}
+
+.evaluation-toolbar {
+  display: flex;
+  align-items: end;
+  gap: 9px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.evaluation-toolbar label,
+.safety-lab label,
+.candidate-form label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.evaluation-toolbar select,
+.evaluation-toolbar button,
+.safety-lab input,
+.safety-lab select,
+.safety-lab textarea,
+.candidate-form input,
+.candidate-form select,
+.candidate-form textarea,
+.candidate-actions button,
+.review-actions button {
+  min-width: 0;
+  border: 1px solid #d9dfda;
+  border-radius: 9px;
+  background: white;
+  padding: 8px 10px;
+  color: #526159;
+  font: inherit;
+}
+
+.evaluation-toolbar button,
+.candidate-actions button,
+.review-actions button { cursor: pointer; }
+
+.evaluation-workspace {
+  display: grid;
+  grid-template-columns: minmax(220px, .72fr) minmax(0, 1.8fr);
+  min-height: 500px;
+  overflow: hidden;
+  border: 1px solid #e2e5e1;
+  border-radius: 15px;
+}
+
+.evaluation-case-list {
+  max-height: 58vh;
+  overflow-y: auto;
+  border-right: 1px solid #e2e5e1;
+  background: #f7f8f5;
+  padding: 8px;
+}
+
+.evaluation-case-list>p,
+.evaluation-empty { color: var(--muted); font-size: 11px; line-height: 1.6; }
+
+.evaluation-case-button {
+  display: grid;
+  width: 100%;
+  gap: 5px;
+  margin-bottom: 5px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  padding: 10px;
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.evaluation-case-button:hover,
+.evaluation-case-button.active { border-color: #cad8d0; background: white; }
+.evaluation-case-button b { font-size: 11px; line-height: 1.45; }
+.evaluation-case-button span { display: flex; gap: 5px; color: var(--muted); font-size: 9px; }
+
+.eval-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border-radius: 99px;
+  padding: 2px 6px;
+  background: #e9efeb;
+  color: #587064;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.eval-badge.p0,
+.eval-badge.block,
+.eval-badge.manual_review { background: #fae8e3; color: #8e5145; }
+.eval-badge.p1,
+.eval-badge.confirm { background: #fff1cc; color: #7d6521; }
+.eval-badge.allow { background: #e5f1e8; color: #4f755b; }
+
+.evaluation-case-detail {
+  max-height: 58vh;
+  overflow-y: auto;
+  padding: 16px 18px 22px;
+}
+
+.evaluation-empty { padding: 36px 18px; text-align: center; }
+.eval-case-head { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+.eval-case-head h3 { margin: 3px 0 5px; font-size: 16px; }
+.eval-case-head p { margin: 0; color: var(--muted); font-size: 10px; }
+.eval-badges { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
+
+.eval-section { margin-top: 14px; }
+.eval-section h4 { margin: 0 0 7px; color: #68766f; font-size: 11px; letter-spacing: .04em; }
+.eval-code {
+  overflow-x: auto;
+  margin: 0;
+  border: 1px solid #e1e5e1;
+  border-radius: 10px;
+  background: #f7f8f5;
+  padding: 10px 12px;
+  color: #425048;
+  font: 10px/1.65 Consolas, "SFMono-Regular", monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.evaluation-layers {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 13px;
+}
+
+.evaluation-layers span {
+  padding: 7px 5px;
+  border-radius: 8px;
+  background: #eef2ef;
+  color: #66756d;
+  font-size: 9px;
+  text-align: center;
+}
+
+.candidate-form {
+  display: grid;
+  grid-template-columns: 1fr 170px;
+  gap: 9px;
+  margin-top: 12px;
+}
+
+.candidate-form .wide { grid-column: 1 / -1; }
+.candidate-form textarea,
+.safety-lab textarea { resize: vertical; line-height: 1.5; }
+.candidate-actions,
+.review-actions,
+.safety-lab-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.candidate-actions { grid-column: 1 / -1; }
+.candidate-actions .primary,
+.safety-lab-actions .primary { border-color: var(--ink); background: var(--ink); color: white; }
+.candidate-actions button:disabled { cursor: wait; opacity: .55; }
+
+.evaluation-result {
+  display: grid;
+  gap: 9px;
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid #dce4de;
+  border-radius: 12px;
+  background: #f5f8f5;
+}
+
+.evaluation-result.failed { border-color: #ecd4cc; background: #fff5f2; }
+.evaluation-result h4 { margin: 0; font-size: 12px; }
+.score-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.score-grid span { padding: 7px; border-radius: 8px; background: white; color: #65736b; font-size: 9px; text-align: center; }
+.score-grid b { display: block; margin-bottom: 3px; color: var(--ink); font-size: 13px; }
+.evaluation-findings { margin: 0; padding-left: 18px; color: #65736b; font-size: 10px; line-height: 1.6; }
+.review-actions span,
+.safety-lab-actions span { color: var(--muted); font-size: 10px; }
+
+.safety-lab {
+  padding: 15px;
+  border: 1px solid #e1e5e1;
+  border-radius: 14px;
+  background: #f7f8f5;
+}
+
+.safety-lab-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.safety-lab .wide { grid-column: 1 / -1; }
+.safety-lab .checkbox { display: flex; align-items: center; align-self: end; min-height: 34px; }
+.safety-lab .checkbox input { width: auto; }
+.safety-lab-actions { margin-top: 12px; }
+.safety-lab-result { display: grid; gap: 10px; margin-top: 12px; }
+.safety-chain { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
+.safety-chain article { min-width: 0; border: 1px solid #dce3de; border-radius: 11px; background: white; padding: 10px; }
+.safety-chain article.failed { border-color: #e7c8bd; background: #fff6f3; }
+.safety-chain article.blocked { border-color: #e7d6a9; background: #fff9e8; }
+.safety-chain b { display: block; margin-bottom: 4px; font-size: 10px; }
+.safety-chain span { display: block; color: var(--muted); font-size: 9px; line-height: 1.45; word-break: break-word; }
+
+@media (max-width: 840px) {
+  .evaluation-summary { grid-template-columns: repeat(2, 1fr); }
+  .evaluation-workspace { grid-template-columns: 1fr; }
+  .evaluation-case-list { max-height: 210px; border-right: 0; border-bottom: 1px solid #e2e5e1; }
+  .evaluation-case-detail { max-height: none; }
+  .safety-lab-grid { grid-template-columns: repeat(2, 1fr); }
+  .safety-chain { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 520px) {
+  .evaluation-dialog { width: 98vw; max-height: 96vh; }
+  .evaluation-content { max-height: calc(96vh - 76px); padding: 14px; }
+  .evaluation-principle { grid-template-columns: 1fr; }
+  .evaluation-toolbar label { flex: 1 1 120px; }
+  .evaluation-toolbar select { width: 100%; }
+  .candidate-form,
+  .safety-lab-grid { grid-template-columns: 1fr; }
+  .candidate-form .wide,
+  .safety-lab .wide { grid-column: 1; }
+  .evaluation-layers,
+  .score-grid,
+  .safety-chain { grid-template-columns: 1fr 1fr; }
+}

@@ -10,6 +10,8 @@ test("development mode keeps the existing repository layout", () => {
   const paths = resolveRuntimePaths({ environment: {}, cwd: "D:\\ExampleAgent" });
   assert.equal(paths.publicRoot, "D:\\ExampleAgent\\public");
   assert.equal(paths.settingsFile, "D:\\ExampleAgent\\data\\settings.json");
+  assert.equal(paths.evaluationDatasetFile, "D:\\ExampleAgent\\data\\evaluation\\automotive-eval-v1.jsonl");
+  assert.equal(paths.evaluationReviewFile, "D:\\ExampleAgent\\data\\evaluation-review-queue.local.json");
   assert.equal(paths.speechModel, "D:\\ExampleAgent\\models\\speech\\faster-whisper-tiny");
 });
 
@@ -26,6 +28,8 @@ test("packaged mode separates read-only resources from writable user data", () =
   });
   assert.equal(paths.publicRoot, "C:\\Program Files\\Amadeus\\resources\\app.asar\\public");
   assert.equal(paths.settingsFile, "C:\\Users\\Example\\AppData\\Roaming\\Amadeus\\data\\settings.json");
+  assert.equal(paths.evaluationDatasetFile, "C:\\Program Files\\Amadeus\\resources\\app.asar\\data\\evaluation\\automotive-eval-v1.jsonl");
+  assert.equal(paths.evaluationReviewFile, "C:\\Users\\Example\\AppData\\Roaming\\Amadeus\\data\\evaluation-review-queue.local.json");
   assert.equal(paths.memoryFile.startsWith(paths.resourceRoot), false);
   assert.equal(paths.modelsRoot, "D:\\LocalModels");
   assert.match(paths.transcribeScript, /AppData\\Roaming\\Amadeus\\runtime/);

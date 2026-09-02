@@ -11,6 +11,7 @@ test("package boundary rejects every private, local and heavyweight artifact cla
     "data/user-profile.local.json",
     "data/memory.json",
     "data/settings.json",
+    "data/evaluation-review-queue.local.json",
     "data/character-sources/script.txt",
     "data/quarantine/source.png",
     "data/character-corpus/style_dictionary.json",
@@ -31,6 +32,8 @@ test("package boundary preserves only public runtime data", () => {
     "data/character-corpus/README.md",
     "data/character-corpus/default_style_dictionary.json",
     "data/character-corpus/default_retrieval_examples.jsonl",
+    "data/evaluation/README.md",
+    "data/evaluation/automotive-eval-v1.jsonl",
   ]) assert.equal(isForbiddenPackageEntry(entry), false, entry);
 });
 
@@ -66,7 +69,14 @@ test("strict runtime allowlist rejects unknown top-level notes and development d
     "electron/server-runtime.cjs",
     "electron/window-source-pager.cjs",
     "lib/local-ollama.js",
+    "lib/automotive-safety-policy.js",
+    "lib/automotive-output-validator.js",
+    "lib/evaluation-input-risk.js",
+    "lib/evaluation-review-store.js",
+    "lib/evaluation-service.js",
     "public/index.html",
+    "public/evaluation.css",
+    "public/evaluation.js",
     "scripts/transcribe.py",
     "node_modules/electron-squirrel-startup/index.js",
     "node_modules/electron-squirrel-startup/node_modules/debug/src/debug.js",

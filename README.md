@@ -23,7 +23,7 @@
 | 隐私设计 | 仅监听本机回环接口；Ollama 只接受字面量回环地址；游戏截图禁止远传且不落盘 |
 | 安全设计 | 文本双向检查、本地图像语义门、凭据脱敏、危机支持、严格媒体解析和限流 |
 | 桌面安全 | renderer sandbox、context isolation、禁用 Node.js、窄 IPC、来源校验、导航阻断 |
-| 工程验证 | 189 个 Node 自动化测试 + 浏览器实测 + 冒烟测试 + Python 语料/素材验证 + 安装包内容/Fuse 审计 |
+| 工程验证 | 312 个 Node 自动化测试 + 59 条桌宠固定评测样本 + 浏览器实测 + 冒烟测试 + Python 语料/素材验证 + 安装包内容/Fuse 审计 |
 
 ## 为什么值得作为面试作品展示
 
@@ -110,6 +110,7 @@ flowchart LR
 | 语音 | faster-whisper tiny + 系统 TTS | 识别进程按需启动并退出；朗读由用户手动开启 |
 | 游戏陪玩 | 手动/低频截图分析 | 仅窗口捕获、变化检测、降低剧透、独立历史、可验证显存释放 |
 | 桌面宠物 | 透明置顶、受限漫游、情绪动作 | 88 个静态姿态、84 帧动画；Web 空闲时在视口内漫游，Electron 在工作区内随机移动并在手动拖动后暂停；文本、回复和交互驱动情绪 |
+| 评测工作台 | 桌宠对话、权限与工具安全回归 | 59 条原创合成样本、11 类切片、35 条 P0；输入、意图、确定性策略、候选工具和输出声明分层评分，全部工具仅 dry-run |
 | 安全服务 | 本地策略 + 可选远端复核 | 文本双向检查、本地图像语义门、凭据脱敏、危机支持、失败关闭 |
 | 素材管线 | 语料构建与桌宠资源验证 | 权利确认、来源记录、媒体真格式检查、原子目录同步 |
 
@@ -229,7 +230,7 @@ Forge/Squirrel 会在 `out/make/squirrel.windows/x64/` 生成 `Setup.exe`、`.nu
 npm run check
 ```
 
-当前覆盖 189 个 Node 测试，重点验证：
+当前覆盖 312 个 Node 测试，重点验证：
 
 - 安全判定、危机支持、凭据脱敏和远端复核策略
 - 本地用户资料的严格 schema、脱敏以及云端/游戏隔离
@@ -239,6 +240,15 @@ npm run check
 - Web Shadow DOM 桌宠的透明外层、受限漫游、文本/回复/交互情绪映射，以及素材 catalog、动画 URL 和边缘状态
 - Electron 桌宠漫游边界与手动拖动暂停；host preload 最小接口及“选择单个普通文件—二次确认—系统回收站”的失败关闭策略
 - Electron 启动账户策略、运行时路径分离、结构化诊断日志脱敏、包边界和 Fuse
+- 桌宠评测数据 schema、确定性动作授权、工具精确匹配、执行声明核验、脱敏人工复核队列和评测页 API/UI 契约
+
+桌宠大模型与动作安全专项测试可单独运行：
+
+```powershell
+npm run test:evaluation
+```
+
+评测入口位于主页面右上角“评测”。工作台只对候选意图、策略、工具结构和回复进行评分，不接入真实删除、录音、截屏或网络执行器；即使策略结果为 `allow`，没有独立可信 host 回执也不得声称操作已经完成。
 
 完整集成验收会调用实际本地服务、语言模型和视觉模型，并验证可选语音组件“就绪或给出明确原因”的状态契约。先在一个终端运行 `npm start`，再在另一个终端执行：
 
@@ -259,9 +269,9 @@ python scripts/test_character_corpus.py
 ```text
 .
 ├─ electron/                  # 主进程、preload、桌宠漫游与受限回收站服务
-├─ lib/                       # 安全分类、安全服务、媒体校验
-├─ public/                    # Web UI、桌宠逻辑与可发布素材
-├─ data/                      # 默认风格词典、本地资料空值模板及数据说明
+├─ lib/                       # 安全分类、桌宠动作策略、评测服务与媒体校验
+├─ public/                    # Web UI、桌宠逻辑、评测页与可发布素材
+├─ data/                      # 默认风格词典、原创合成评测集及数据说明
 ├─ scripts/                   # 启动、冒烟测试、语料与素材管线
 ├─ tests/                     # Node 自动化测试
 ├─ forge.config.cjs           # Windows 打包边界、Squirrel 与 Electron Fuses
@@ -269,7 +279,7 @@ python scripts/test_character_corpus.py
 └─ docs/                      # 开发交接与许可核查
 ```
 
-继续开发前请阅读 [`docs/DEVELOPMENT_HANDOFF.md`](docs/DEVELOPMENT_HANDOFF.md)。人物风格素材的使用边界见 [`docs/LEGAL_TEXT_SOURCES.md`](docs/LEGAL_TEXT_SOURCES.md)。
+继续开发前请阅读 [`docs/DEVELOPMENT_HANDOFF.md`](docs/DEVELOPMENT_HANDOFF.md)。桌宠大模型评测与人工复核设计见 [`docs/DESKTOP_PET_LLM_EVALUATION.md`](docs/DESKTOP_PET_LLM_EVALUATION.md)，完整交互测试矩阵见 [`docs/DESKTOP_PET_TEST_DESIGN.md`](docs/DESKTOP_PET_TEST_DESIGN.md)，人物风格素材的使用边界见 [`docs/LEGAL_TEXT_SOURCES.md`](docs/LEGAL_TEXT_SOURCES.md)。
 
 ## 隐私与安全不变量
 
@@ -279,6 +289,7 @@ python scripts/test_character_corpus.py
 - 游戏截图、游戏上下文和游戏分析永远禁止远程审核。
 - 模型输出必须先完整通过安全检查，才会显示给用户。
 - Electron renderer 不获得通用文件、shell、URL 或 IPC 权限；唯一文件动作是 host 的无路径 `trashDesktopFile`，路径只存在于主进程系统选择/确认对话框中，并且只能进入系统回收站。
+- 评测页没有真实工具执行器；模型候选中的 `trusted`、`confirmed` 或 `executed` 一律不作为授权或完成证据，人工复核也不能替代实时授权。
 - `.env`、本地用户资料、记忆、设置、模型、音频、授权原文和隔离区不会进入版本控制。
 - 本地用户资料与长期记忆只进入本地普通聊天；云端模式和游戏陪玩不会读取它们。
 

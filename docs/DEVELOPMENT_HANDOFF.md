@@ -19,13 +19,14 @@
 - 游戏陪玩只接受用户明确选择的窗口并离散截帧给本地视觉模型；不读取游戏内存、不控制键鼠、不落盘、不进入普通聊天历史。取消换窗会保留旧流，变化跳帧有上限，停止会中止所有游戏请求并验证模型释放结果。
 - 桌宠静态素材已验收并编入目录 88 张（编号 01–88）；动画共 84 帧。最近 12 张可在桌宠中轮换，约 3.5 秒后恢复待机/边缘姿态。
 - 人物提示词使用“克里斯提娜/牧濑红莉西”的理性、证据意识、反问、克制吐槽和嘴硬式关心，不冒充真人或官方产品。
+- 主页面右上角已有桌宠评测工作台，固定集为 59 条原创合成样本（11 类、35 条 P0）。评测把输入安全、候选意图、确定性动作策略、工具 schema 和输出事实一致性分开评分；工作台没有真实文件、录音、截屏或网络执行器，客户端自报的 `trusted`、`confirmed`、`executed` 均不可信。
 - 普通对话不再用“你只要”“把条件说清楚”“先别”等命令、训斥或支配用户的措辞；只有存在明确、迫近的现实安全风险，或用户明确要求操作步骤时，才允许必要的直接指引。桌宠情绪由用户文本、回复内容和点击/忙碌等交互状态共同驱动。
 - 人物风格检索按中文二元/三元片段和场景硬隔离，不再把零分的科学示例默认塞进情绪对话；内部 `[场景/情绪]` 标签只在完整输出安全检查后清理。只有整句属于固定低落短句、且无图片/音频/游戏上下文时才走本地快速回应，附加医疗、现实危险或分析请求时必须走完整安全与模型链。
 - Electron host 新增一项窄文件能力：用户从系统文件选择器选择一个普通文件，经默认取消的二次确认后，只能由主进程调用 `shell.trashItem` 移入系统回收站。renderer 不传入或接收路径，模型不能触发；桌宠中的用户点击只发送固定空参数意图，由 host 决定是否调用该能力。目录、符号链接及确认期间发生变化的文件均拒绝，没有 `unlink`、`rm` 或其他永久删除回退。host preload 仅暴露 `togglePet`、`onPetVisibility`、`trashDesktopFile`。
 - 公开仓库使用重建后的净化历史；真实用户资料集中在被忽略的 `data/user-profile.local.json`，私有发布元数据集中在被忽略的 `release.local.cjs`，仓库只保留空值/中性示例。
 - Windows Forge/Squirrel 构建可生成 `Setup.exe`、`.nupkg` 和 `RELEASES`。Electron 官方 ZIP 以 npm 包内 `checksums.json` 校验，Squirrel 使用固定 SHA-256 的 NuGet 6.11.1；打包采用严格运行时白名单，生成后校验全部应用源文件哈希、HTML/JS 依赖、私密边界和 Electron Fuses。`out/` 与 `downloads/` 缓存不提交。
 - `npm run desktop:diagnose` 显式开启纯本地 Crashpad dump、脱敏事件 JSONL 和原始 Chromium 日志；默认关闭、不上传，并限制大小、数量和保留时间。原始日志与 dump 外发前必须人工检查。
-- 当前自动化基线为 189 个 Node 测试（以最新 `npm run check` 输出为准），另有桌面启动策略、实际服务/模型冒烟、浏览器页面检查和 Python 语料/素材验证；主界面、桌宠与回复策略的可执行矩阵见 `docs/DESKTOP_PET_TEST_DESIGN.md`。
+- 当前自动化基线为 312 个 Node 测试（以最新 `npm run check` 输出为准），其中桌宠评测专项覆盖数据 schema、输入风险、动作策略、输出声明、脱敏复核队列、API 和 UI 契约；另有桌面启动策略、实际服务/模型冒烟、浏览器页面检查和 Python 语料/素材验证。评测设计见 `docs/DESKTOP_PET_LLM_EVALUATION.md`，主界面、桌宠与回复策略的可执行矩阵见 `docs/DESKTOP_PET_TEST_DESIGN.md`。
 
 ## 本轮已完成的原待办
 
@@ -37,6 +38,7 @@
 6. 转写脚本不再裸露在 `app.asar.unpacked`：打包版从完整性保护的 ASAR 提取到用户目录并逐次校验哈希；Python 使用绝对解释器路径，语音状态会检查 `faster-whisper` 并向前端返回准确原因，临时录音在完成后等待删除并清理过期残留。
 7. 已删除主页面冗余侧栏，修复内置浏览器中桌宠按钮无响应，并加入页面内 Shadow DOM 桌宠；同时修复中文风格检索零分回退、内部标签泄漏和简短低落回复的长延迟。Web 打开/关闭/唯一实例及短回复已在真实页面验证，Electron 安装包已重建并通过包边界与 Fuse 审计。
 8. 已移除普通回复中的命令式、训斥式默认措辞；Web 桌宠改为透明外层和空闲受限漫游，用户文本、回复及交互会切换情绪；Electron 加入工作区内受限随机漫游并在手动拖动后暂停。新增 Electron host 专用的安全回收站流程及确定性测试，`electron/pet-roam.cjs`、`electron/file-trash-service.cjs` 已进入严格包白名单；真实 GUI 结果仍按下节单独验收。
+9. 已加入桌宠专用大模型评测工作台、59 条固定合成样本和五层安全判定。文件回收站、麦克风、窗口截帧及显式云端请求由普通代码根据可信来源、实时用户手势、系统选择/确认和状态快照判定；模型只能提出候选。评测页全程 dry-run，操作完成声明必须有独立可信 host 回执。脱敏复核单只在用户主动生成时写入本地受限队列 `data/evaluation-review-queue.local.json`，该文件被 Git 忽略且不自动上传。
 
 ## 仍需外部条件或真实桌面验收
 
@@ -56,6 +58,7 @@
 2. 阅读本文和 `README.md`，确认本次只处理一个明确范围。
 3. 运行 `npm ci`（仅首次或锁文件变化时）。
 4. 修改前先运行相关专项测试；修改后至少运行 `npm run check`。需要真实 Agent/模型链时，先启动 `npm start`，再运行 `npm test`。
+   - 修改评测数据、桌宠动作策略、输出声明或人工复核时，先运行 `npm run test:evaluation`。
 5. 新增桌宠静态 PNG 时：
    - 使用 `public/desktop-pet-assets/makise-kurisu-chibi-01-joyful-wave.png` 作为风格母版。
    - 最终文件必须为真实 RGBA 静态 PNG、透明背景/四角、连续编号、单文件不超过 16MB。
@@ -69,7 +72,7 @@
 ## Electron 发布与诊断约束
 
 - `forge.config.cjs` 的打包规则与 `electron/package-boundary.cjs` 是发布安全边界；`.gitignore` 不能替代它们。新增运行时模块或公开资源必须同步白名单和包审计测试。
-- `electron/pet-roam.cjs` 与 `electron/file-trash-service.cjs` 是当前允许进入包的运行时模块；修改文件名、依赖或入口时必须同步严格包白名单、源哈希和 Electron 契约测试。
+- `electron/pet-roam.cjs`、`electron/file-trash-service.cjs` 以及 `lib/desktop-pet-action-policy.js`、`lib/desktop-pet-output-validator.js`、`lib/evaluation-input-risk.js`、`lib/evaluation-service.js`、`lib/evaluation-review-store.js` 是当前允许进入包的运行时模块；修改文件名、依赖或入口时必须同步严格包白名单、源哈希和 Electron/评测契约测试。
 - `scripts/audit-electron-package.cjs` 必须对实际输出执行，并保持 Fuses：禁用 RunAsNode、`NODE_OPTIONS`、CLI inspect 和额外 `file://` 权限，启用 ASAR 完整性与 OnlyLoadAppFromAsar。
 - 打包版设置、资料、记忆和自定义语料位于 Electron 标准 `userData`（Windows 通常在 Roaming AppData）；模型、提取脚本、诊断、Chromium session/cache，以及 localStorage 中的聊天历史与 TTS/游戏偏好位于 Local AppData。旧版 Roaming session 不自动迁移或删除；企业备份/漫游策略仍可能处理 Roaming 数据，卸载也未必删除两处残留，不能把“应用不上传”等同于“操作系统绝不备份”。
 - 诊断默认关闭且不得增加自动上传。`events.jsonl` 只保存经过路径、邮箱和常见凭据赋值脱敏的事件元数据，不主动记录对话或截图；`chromium-raw.log` 由 Chromium 直接写入，可能含完整路径、URL 或控制台内容，dump 可能含内存片段。原始日志和 dump 外发前都必须人工检查。
@@ -84,6 +87,7 @@
 - `data/user-profile.local.json` 与 `data/memory.json` 只允许进入本地普通聊天；云端模式与游戏陪玩不得读取或发送它们，前端与 Electron IPC 不得暴露原文。
 - 被安全策略判为 `support` 或 `block` 的用户原文不写历史；敏感信息只保存脱敏版本。
 - 模型完整输出通过输出检查后才能展示，不能为追求流式观感而先泄露再拦截。
+- 桌宠动作策略不信任模型或浏览器自报状态；人工复核仅用于定位缺陷，不是实时授权。没有独立可信 host 成功回执时，回复不得声称文件、录音、上传或保存已完成。
 - Electron 不开放通用文件、shell、任意 URL 或任意 IPC 能力；唯一文件例外是 host renderer 上无路径参数的 `trashDesktopFile`。主进程自行完成单文件选择、默认取消的二次确认、普通文件/非链接/未变化复核，并且只调用 `shell.trashItem`；不得允许 renderer 或模型传入路径，不得增加永久删除回退。
 - 桌宠只覆盖显示，不向游戏或其他进程注入代码。
 - 不抓取、打包或提交未经许可的完整原作脚本、Alarm/导航语音包或社区转载资源。

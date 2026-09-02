@@ -11,6 +11,8 @@ test("development mode keeps the existing repository layout", () => {
   assert.equal(paths.publicRoot, "D:\\ExampleAgent\\public");
   assert.equal(paths.settingsFile, "D:\\ExampleAgent\\data\\settings.json");
   assert.equal(paths.speechModel, "D:\\ExampleAgent\\models\\speech\\faster-whisper-tiny");
+  assert.equal(paths.evaluationDatasetFile, "D:\\ExampleAgent\\data\\evaluation\\desktop-pet-eval-v1.jsonl");
+  assert.equal(paths.evaluationReviewFile, "D:\\ExampleAgent\\data\\evaluation-review-queue.local.json");
 });
 
 test("packaged mode separates read-only resources from writable user data", () => {
@@ -27,6 +29,8 @@ test("packaged mode separates read-only resources from writable user data", () =
   assert.equal(paths.publicRoot, "C:\\Program Files\\Amadeus\\resources\\app.asar\\public");
   assert.equal(paths.settingsFile, "C:\\Users\\Example\\AppData\\Roaming\\Amadeus\\data\\settings.json");
   assert.equal(paths.memoryFile.startsWith(paths.resourceRoot), false);
+  assert.equal(paths.evaluationDatasetFile.startsWith(paths.resourceRoot), true);
+  assert.equal(paths.evaluationReviewFile.startsWith(paths.resourceRoot), false);
   assert.equal(paths.modelsRoot, "D:\\LocalModels");
   assert.match(paths.transcribeScript, /AppData\\Roaming\\Amadeus\\runtime/);
   assert.equal(paths.transcribeScriptSha256, "a".repeat(64));

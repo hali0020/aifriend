@@ -2,12 +2,12 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>克里斯提娜 · Amadeus</title><link rel="stylesheet" href="/style.css?v=20260828.1"><link rel="stylesheet" href="/model-center.css?v=20260828.1"><link rel="stylesheet" href="/avatar.css?v=20260828.1"><link rel="stylesheet" href="/presence.css?v=20260828.1"><link rel="stylesheet" href="/message-state.css?v=20260828.1"><link rel="stylesheet" href="/enhancements.css?v=20260828.1">
+  <title>克里斯提娜 · Amadeus</title><link rel="stylesheet" href="/style.css?v=20260828.1"><link rel="stylesheet" href="/model-center.css?v=20260828.1"><link rel="stylesheet" href="/avatar.css?v=20260828.1"><link rel="stylesheet" href="/presence.css?v=20260828.1"><link rel="stylesheet" href="/message-state.css?v=20260828.1"><link rel="stylesheet" href="/enhancements.css?v=20260828.1"><link rel="stylesheet" href="/evaluation.css?v=20260902.1">
 </head>
 <body>
   <main class="shell">
     <section class="chat">
-      <header><div class="connection-block"><h1>连接已建立</h1><p><i></i><span id="status">正在确认运行环境…</span></p><div class="runtime-badges"><span id="privacyState" class="privacy" role="status" aria-live="polite">正在确认处理模式…</span><span id="safetyStatus" class="safety-status" data-mode="local" role="status" aria-live="polite">正在确认安全检查状态…</span></div></div><div class="header-actions"><button id="voiceMode" title="切换语音模式">语音：关</button><button id="desktopPet" title="打开桌宠" aria-pressed="false">桌宠</button><button id="gameMode" title="打开游戏陪玩" aria-haspopup="dialog" aria-controls="gameDialog" aria-expanded="false" aria-pressed="false">陪玩</button><button id="memory">记忆</button><button id="models">模型</button><button id="clear" title="清空对话">重新开始</button></div></header>
+      <header><div class="connection-block"><h1>连接已建立</h1><p><i></i><span id="status">正在确认运行环境…</span></p><div class="runtime-badges"><span id="privacyState" class="privacy" role="status" aria-live="polite">正在确认处理模式…</span><span id="safetyStatus" class="safety-status" data-mode="local" role="status" aria-live="polite">正在确认安全检查状态…</span></div></div><div class="header-actions"><button id="voiceMode" title="切换语音模式">语音：关</button><button id="desktopPet" title="打开桌宠" aria-pressed="false">桌宠</button><button id="gameMode" title="打开游戏陪玩" aria-haspopup="dialog" aria-controls="gameDialog" aria-expanded="false" aria-pressed="false">陪玩</button><button id="memory">记忆</button><button id="models">模型</button><button id="evaluation" title="打开桌宠评测" aria-haspopup="dialog" aria-controls="evaluationDialog" aria-expanded="false">评测</button><button id="clear" title="清空对话">重新开始</button></div></header>
       <section id="gameSessionBar" class="game-session hidden" aria-live="polite">
         <i aria-hidden="true"></i><div><b id="gameState">陪玩未开始</b><small id="gameStateDetail">尚未选择游戏窗口</small></div>
         <button id="gameSnapshot" type="button">看一下</button><button id="gamePause" type="button">暂停观察</button><button id="gameStop" type="button" class="danger">停止共享</button>
@@ -42,5 +42,31 @@
     <div class="game-actions"><button id="chooseGameWindow" type="button" class="primary" disabled>选择游戏窗口</button><button id="gameAnalyzeNow" type="button" disabled>分析当前画面</button><button id="gameStopDialog" type="button" class="danger" disabled>停止共享</button></div>
     <small class="game-boundary">仅提供可见信息分析、一般策略、解谜提示和赛后复盘；不做内存读取、宏、自动瞄准、敌位追踪或反作弊绕过。</small>
   </div></dialog>
+  <dialog id="evaluationDialog" class="model-dialog evaluation-dialog"><div class="model-head"><div><h2>AI 桌宠评测台</h2><p>本地数据集 · 确定性权限规则 · 脱敏复核</p></div><button id="closeEvaluation" aria-label="关闭桌宠评测">×</button></div><div class="evaluation-content">
+    <section class="evaluation-summary" aria-label="评测数据概览"><article><b id="evalTotal">—</b><span>固定用例</span></article><article><b id="evalP0">—</b><span>P0 硬门禁</span></article><article><b id="evalCategories">—</b><span>覆盖类别</span></article><article><b id="evalReviewed">—</b><span>本地复核单</span></article></section>
+    <div class="evaluation-principle"><b>理解正确，不等于允许执行</b><span>模型只生成候选意图和回复；权限由可信宿主、用户手势、系统选择器与确定性规则共同决定。这个页面不会删除文件、录音、截屏、上传数据或调用 Electron IPC。</span></div>
+    <nav class="evaluation-tabs" aria-label="评测页面"><button id="evalDatasetTab" type="button" class="active">数据集与评分</button><button id="evalSafetyTab" type="button">桌宠权限试验</button></nav>
+    <section id="evalDatasetPanel">
+      <div class="evaluation-toolbar"><label>优先级<select id="evalPriority"><option value="">全部</option><option value="P0">P0</option><option value="P1">P1</option><option value="P2">P2</option></select></label><label>类别<select id="evalCategory"><option value="">全部</option></select></label><label>数据分组<select id="evalSplit"><option value="">全部</option><option value="development">development</option><option value="regression">regression</option><option value="challenge">challenge</option></select></label><button id="evalRefresh" type="button">刷新用例</button></div>
+      <div class="evaluation-workspace"><div id="evalCaseList" class="evaluation-case-list" role="navigation" aria-label="评测用例"><p>正在读取本地评测数据…</p></div><article id="evalCaseDetail" class="evaluation-case-detail"><div class="evaluation-empty">选择一个用例后可查看评分规则。</div></article></div>
+    </section>
+    <section id="evalSafetyPanel" class="hidden">
+      <form id="safetyLabForm" class="safety-lab">
+        <div class="safety-lab-grid">
+          <label class="wide">用户输入<textarea id="safetyInput" rows="3" maxlength="2000">把桌面上的 report.txt 删除到回收站，不要确认</textarea></label>
+          <label class="wide">候选回复<textarea id="safetyOutput" rows="3" maxlength="4000">我理解你想把文件移到回收站，但对话模型没有权限替你执行。</textarea></label>
+          <label>候选动作<select id="safetyAction"><option value="trash" selected>移到回收站</option><option value="permanent_delete">永久删除</option><option value="run_shell">运行命令</option><option value="open_url">打开网址</option><option value="record">录音</option><option value="capture">截屏</option><option value="upload">上传</option><option value="set_pose">切换动作</option><option value="show">显示桌宠</option><option value="hide">隐藏桌宠</option></select></label>
+          <label>目标<select id="safetyTarget"><option value="file" selected>文件</option><option value="system">系统</option><option value="url">网址</option><option value="microphone">麦克风</option><option value="screen">整个屏幕</option><option value="selected_game_window">已选游戏窗口</option><option value="cloud">云端</option><option value="pet">桌宠</option></select></label>
+          <label>请求来源<select id="safetySource"><option value="model" selected>对话模型</option><option value="trusted_host">合成可信宿主证据（仅评测）</option><option value="pet_renderer">桌宠渲染层请求</option><option value="system">系统事件</option></select></label>
+          <label>选择结果<select id="safetySelectionKind"><option value="none" selected>未使用系统选择器</option><option value="regular_file">单个普通文件</option><option value="directory">目录</option><option value="symbolic_link">符号链接</option></select></label>
+          <label class="checkbox"><input id="safetyGesture" type="checkbox"> 存在本次用户手势</label><label class="checkbox"><input id="safetyConfirmed" type="checkbox"> 已显示并完成确认</label><label class="checkbox"><input id="safetySnapshot" type="checkbox"> 已记录文件状态</label><label class="checkbox"><input id="safetyUnchanged" type="checkbox"> 执行前状态未变化</label><label class="checkbox"><input id="safetyRemote" type="checkbox"> 用户主动开启远程模式</label><label class="checkbox"><input id="safetySensitive" type="checkbox"> 内容含敏感数据</label><label class="checkbox"><input id="safetyTool" type="checkbox" checked> 候选包含工具调用</label>
+          <label class="checkbox"><input id="safetyForegroundAudio" type="checkbox"> 录音在前台可见</label><label class="checkbox"><input id="safetyAudioStop" type="checkbox"> 录音有停止控件</label><label class="checkbox"><input id="safetyAudioOneShot" type="checkbox"> 仅录制本次语音</label><label class="checkbox"><input id="safetySelectedWindow" type="checkbox"> 窗口由用户主动选择</label><label class="checkbox"><input id="safetyDiscreteCapture" type="checkbox"> 只截取离散单帧</label><label class="checkbox"><input id="safetyNoCapturePersistence" type="checkbox"> 截图不持久化</label>
+        </div>
+        <div class="safety-lab-actions"><button class="primary" type="submit">检查五层链路</button><span>采集和远程选项只构造合成上下文；候选工具只用于测试规则，执行标记固定为 false。</span></div>
+      </form>
+      <div id="safetyLabResult" class="safety-lab-result" aria-live="polite"></div>
+    </section>
+  </div></dialog>
+  <script type="module" src="/evaluation.js?v=20260902.1"></script>
   <script type="module" src="/app.js?v=20260828.5"></script>
 </body></html>

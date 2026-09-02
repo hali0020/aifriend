@@ -13,6 +13,11 @@ const RUNTIME_FILES = new Set([
   "electron/server-runtime.cjs",
   "electron/window-source-pager.cjs",
   "lib/demo-reply.js",
+  "lib/desktop-pet-action-policy.js",
+  "lib/desktop-pet-output-validator.js",
+  "lib/evaluation-input-risk.js",
+  "lib/evaluation-review-store.js",
+  "lib/evaluation-service.js",
   "lib/game-request-coordinator.js",
   "lib/image-safety-service.js",
   "lib/local-ollama.js",
@@ -27,6 +32,8 @@ const RUNTIME_FILES = new Set([
   "data/character-corpus/README.md",
   "data/character-corpus/default_style_dictionary.json",
   "data/character-corpus/default_retrieval_examples.jsonl",
+  "data/evaluation/README.md",
+  "data/evaluation/desktop-pet-eval-v1.jsonl",
 ]);
 const RUNTIME_DIRECTORIES = new Set([
   "electron",
@@ -37,6 +44,7 @@ const RUNTIME_DIRECTORIES = new Set([
   "scripts",
   "data",
   "data/character-corpus",
+  "data/evaluation",
   "node_modules",
   "node_modules/electron-squirrel-startup",
   "node_modules/electron-squirrel-startup/node_modules",
@@ -65,6 +73,8 @@ const PUBLIC_FILES = new Set([
   "public/desktop-pet.html",
   "public/desktop-pet.js",
   "public/emotion-engine.js",
+  "public/evaluation.css",
+  "public/evaluation.js",
   "public/enhancements.css",
   "public/game-session-policy.js",
   "public/index.html",
@@ -91,6 +101,7 @@ function isForbiddenPackageEntry(value) {
   if (/\.(?:pem|key|p12|pfx|gguf|safetensors|onnx|pt|pth|ckpt|log|dmp|dump)$/i.test(entry)) return true;
   if (/^(?:audio|models|runtime|downloads|tmp|work|data\/quarantine|data\/character-sources)(?:\/|$)/i.test(entry)) return true;
   if (/^data\/(?:memory|settings|user-profile\.local)\.json$/i.test(entry)) return true;
+  if (/^data\/evaluation-review-queue\.local\.json$/i.test(entry)) return true;
   if (/^data\/character-corpus\//i.test(entry) && !/^data\/character-corpus\/(?:README\.md|default_style_dictionary\.json|default_retrieval_examples\.jsonl)$/i.test(entry)) return true;
   return false;
 }

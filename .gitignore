@@ -4,7 +4,6 @@
 data/memory.json
 data/settings.json
 data/user-profile.local.json
-data/evaluation-review-queue.local.json
 
 # Local runtimes, downloaded installers, and model weights
 runtime/

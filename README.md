@@ -21,9 +21,9 @@
 | 多模态 | 文字、静态图片、按需语音识别、游戏窗口离散截帧 |
 | 本地模型 | Qwen2.5 / Qwen3 / DeepSeek R1 / Qwen3-VL，可在模型中心切换与下载 |
 | 隐私设计 | 仅监听本机回环接口；Ollama 只接受字面量回环地址；游戏截图禁止远传且不落盘 |
-| 安全设计 | 文本双向检查、本地图像语义门、凭据脱敏、危机支持，以及车辆动作的确定性授权与输出声明核验 |
+| 安全设计 | 文本双向检查、本地图像语义门、凭据脱敏、危机支持、严格媒体解析和限流 |
 | 桌面安全 | renderer sandbox、context isolation、禁用 Node.js、窄 IPC、来源校验、导航阻断 |
-| 工程验证 | 244 个 Node 自动化测试 + 浏览器实测 + 冒烟测试 + Python 语料/素材验证 + 安装包内容/Fuse 审计 |
+| 工程验证 | 189 个 Node 自动化测试 + 浏览器实测 + 冒烟测试 + Python 语料/素材验证 + 安装包内容/Fuse 审计 |
 
 ## 为什么值得作为面试作品展示
 
@@ -42,8 +42,6 @@
 - 模型完整输出先在内存中缓冲，通过输出检查后才显示。
 - 被判定为 `support` 或 `block` 的原文不写入历史。
 - 对密码、令牌、手机号、邮箱等内容应用本地检测与脱敏。
-- 车辆场景额外把“输入内容、意图解析、动作授权、工具执行、输出声明”拆成五层；语言模型可以正确识别“开门”，但没有权力覆盖车速、挡位、乘员权限和状态新鲜度等确定性策略。
-- 行驶中开门/解锁/开后备箱、驾驶区视频等危险动作会在策略层失败关闭；即使工具没有真的执行，模型声称“已打开”也会作为 P0 输出矛盾拦截。
 - 普通对话不使用“你只要”“把条件说清楚”“先别”等命令或训斥式措辞；只有明确、迫近的现实安全风险，或用户主动要求操作步骤时，才给出必要且克制的直接指引。
 
 这里刻意选择了“安全放行后一次性展示”，而不是先流式输出再补救。代价是牺牲部分首字可见速度，收益是避免不安全内容已经显示后才被拦截。
@@ -100,14 +98,6 @@ flowchart LR
     API <--> MEMORY[(Local memory JSON)]
     UI <--> PET[Sandboxed desktop pet]
     PET <-->|validated narrow IPC| MAIN[Electron main process]
-
-    UI --> EVAL[Local evaluation workbench]
-    EVAL --> SET[(62 synthetic fixed cases)]
-    EVAL --> INTENT[Intent candidate]
-    INTENT --> POLICY[Deterministic vehicle policy]
-    POLICY --> DRY[Dry-run tool assertion]
-    DRY --> CLAIM[Output-claim validator]
-    CLAIM --> REVIEW[(Redacted local review queue)]
 ```
 
 ## 核心功能
@@ -121,7 +111,6 @@ flowchart LR
 | 游戏陪玩 | 手动/低频截图分析 | 仅窗口捕获、变化检测、降低剧透、独立历史、可验证显存释放 |
 | 桌面宠物 | 透明置顶、受限漫游、情绪动作 | 88 个静态姿态、84 帧动画；Web 空闲时在视口内漫游，Electron 在工作区内随机移动并在手动拖动后暂停；文本、回复和交互驱动情绪 |
 | 安全服务 | 本地策略 + 可选远端复核 | 文本双向检查、本地图像语义门、凭据脱敏、危机支持、失败关闭 |
-| 模型评测 | 62 条固定用例 + 安全链路试验 | 意图/策略/工具/回复分项评分、P0 硬失败、本地模型 dry-run、脱敏人工复核单 |
 | 素材管线 | 语料构建与桌宠资源验证 | 权利确认、来源记录、媒体真格式检查、原子目录同步 |
 
 ## 技术栈
@@ -201,8 +190,6 @@ npm start
 
 使用终端显示的本地访问地址打开页面。
 
-页面右上角的“评测”会打开本地评测工作台。可以按优先级、类别和数据分组查看 62 条原创合成用例，粘贴候选结构进行确定性评分，或让当前 Ollama 语言模型在无工具连接的 dry-run 沙盒中生成候选结果。“安全链路试验”预置了行驶中开门样例，会分别显示内容安全、隐私/注入、意图、动作策略、工具和输出声明结果。复核单只在用户点击后写入被 Git 忽略的本机 `data/evaluation-review-queue.local.json`；下载或转交给审核系统仍需用户主动操作。
-
 ### 5. 启动 Electron 桌宠
 
 ```powershell
@@ -242,10 +229,9 @@ Forge/Squirrel 会在 `out/make/squirrel.windows/x64/` 生成 `Setup.exe`、`.nu
 npm run check
 ```
 
-当前覆盖 244 个 Node 测试，重点验证：
+当前覆盖 189 个 Node 测试，重点验证：
 
 - 安全判定、危机支持、凭据脱敏和远端复核策略
-- 62 条固定评测集的 schema/覆盖/黄金结构、车辆动作策略、输入多轴风险、执行声明一致性、四维评分、API 同源边界及脱敏复核队列
 - 本地用户资料的严格 schema、脱敏以及云端/游戏隔离
 - 图片/音频真实格式、尺寸、动画和路径校验
 - 字面量回环 Ollama 边界、本地图像语义失败关闭和游戏会话隔离
@@ -275,7 +261,7 @@ python scripts/test_character_corpus.py
 ├─ electron/                  # 主进程、preload、桌宠漫游与受限回收站服务
 ├─ lib/                       # 安全分类、安全服务、媒体校验
 ├─ public/                    # Web UI、桌宠逻辑与可发布素材
-├─ data/                      # 默认风格词典、原创固定评测集、本地资料模板及数据说明
+├─ data/                      # 默认风格词典、本地资料空值模板及数据说明
 ├─ scripts/                   # 启动、冒烟测试、语料与素材管线
 ├─ tests/                     # Node 自动化测试
 ├─ forge.config.cjs           # Windows 打包边界、Squirrel 与 Electron Fuses
@@ -283,7 +269,7 @@ python scripts/test_character_corpus.py
 └─ docs/                      # 开发交接与许可核查
 ```
 
-继续开发前请阅读 [`docs/DEVELOPMENT_HANDOFF.md`](docs/DEVELOPMENT_HANDOFF.md)。汽车座舱测试点与 48 个代表性用例见 [`docs/AUTOMOTIVE_LLM_TEST_PLAN.md`](docs/AUTOMOTIVE_LLM_TEST_PLAN.md)，评测数据、五层安全链路与人工复核规范见 [`docs/LLM_EVALUATION_AND_SAFETY.md`](docs/LLM_EVALUATION_AND_SAFETY.md)，人物风格素材的使用边界见 [`docs/LEGAL_TEXT_SOURCES.md`](docs/LEGAL_TEXT_SOURCES.md)。
+继续开发前请阅读 [`docs/DEVELOPMENT_HANDOFF.md`](docs/DEVELOPMENT_HANDOFF.md)。人物风格素材的使用边界见 [`docs/LEGAL_TEXT_SOURCES.md`](docs/LEGAL_TEXT_SOURCES.md)。
 
 ## 隐私与安全不变量
 
@@ -294,7 +280,6 @@ python scripts/test_character_corpus.py
 - 模型输出必须先完整通过安全检查，才会显示给用户。
 - Electron renderer 不获得通用文件、shell、URL 或 IPC 权限；唯一文件动作是 host 的无路径 `trashDesktopFile`，路径只存在于主进程系统选择/确认对话框中，并且只能进入系统回收站。
 - `.env`、本地用户资料、记忆、设置、模型、音频、授权原文和隔离区不会进入版本控制。
-- 人工复核队列只保存白名单字段、哈希和脱敏短片段，默认位于本机用户数据目录；不会自动上传，也不会成为运行时车辆授权通道。
 - 本地用户资料与长期记忆只进入本地普通聊天；云端模式和游戏陪玩不会读取它们。
 
 Electron 安装版把模型、提取后的转写脚本、诊断文件以及 Chromium `sessionData` 放在 Windows Local AppData；聊天历史、TTS/游戏偏好等浏览器存储随 `sessionData` 留在本机。设置、资料、记忆和自定义语料位于 Electron 标准 `userData`（Windows 通常是 Roaming AppData）。从旧版升级后，旧 Roaming 会话缓存不会自动复制或删除；需要清除时请先退出应用，再由用户自行删除对应旧目录。应用本身不上传这些内容，但操作系统或企业备份策略可能处理 Roaming 数据，卸载应用也未必自动删除 Local/Roaming 残留。
@@ -308,7 +293,6 @@ Electron 安装版把模型、提取后的转写脚本、诊断文件以及 Chro
 - 本地图像语义门目前复用通用视觉模型，是失败关闭的最小安全实现，不等同于经过专门评测的生产级视觉审核分类器；上传图片仍建议避免包含个人信息。
 - 完整 `npm audit` 仍会报告 Electron Forge 构建链中 `extract-zip` 的上游开发依赖告警；生产依赖审计为 0。不要用 `npm audit fix --force` 降级 Forge。
 - 当前朗读使用系统语音，不包含也不宣称使用官方角色音色；仓库也不包含原作音频或完整台词。
-- 汽车评测工作台是无真实车辆连接的测试/作品集原型：工具调用只作为候选结构评分，不能据此宣称已满足量产车规、功能安全、网络安全、地区法规或真实硬件台架认证。接入实际车控前仍需独立安全控制器、车型能力契约、可信传感器、硬件在环和人工安全评审。
 
 ## 项目状态与权利说明
 

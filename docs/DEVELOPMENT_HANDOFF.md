@@ -24,6 +24,7 @@
 - 人物风格检索按中文二元/三元片段和场景硬隔离，不再把零分的科学示例默认塞进情绪对话；内部 `[场景/情绪]` 标签只在完整输出安全检查后清理。只有整句属于固定低落短句、且无图片/音频/游戏上下文时才走本地快速回应，附加医疗、现实危险或分析请求时必须走完整安全与模型链。
 - Electron host 新增一项窄文件能力：用户从系统文件选择器选择一个普通文件，经默认取消的二次确认后，只能由主进程调用 `shell.trashItem` 移入系统回收站。renderer 不传入或接收路径，模型不能触发；桌宠中的用户点击只发送固定空参数意图，由 host 决定是否调用该能力。目录、符号链接及确认期间发生变化的文件均拒绝，没有 `unlink`、`rm` 或其他永久删除回退。host preload 仅暴露 `togglePet`、`onPetVisibility`、`trashDesktopFile`。
 - 公开仓库使用重建后的净化历史；真实用户资料集中在被忽略的 `data/user-profile.local.json`，私有发布元数据集中在被忽略的 `release.local.cjs`，仓库只保留空值/中性示例。
+- Git 唯一认可的公开身份与远程目标是 `hali0020` 和 `https://github.com/hali0020/aifriend.git`；禁止向旧私有仓库、其他账号或临时远程推送。
 - Windows Forge/Squirrel 构建可生成 `Setup.exe`、`.nupkg` 和 `RELEASES`。Electron 官方 ZIP 以 npm 包内 `checksums.json` 校验，Squirrel 使用固定 SHA-256 的 NuGet 6.11.1；打包采用严格运行时白名单，生成后校验全部应用源文件哈希、HTML/JS 依赖、私密边界和 Electron Fuses。`out/` 与 `downloads/` 缓存不提交。
 - `npm run desktop:diagnose` 显式开启纯本地 Crashpad dump、脱敏事件 JSONL 和原始 Chromium 日志；默认关闭、不上传，并限制大小、数量和保留时间。原始日志与 dump 外发前必须人工检查。
 - 当前自动化基线为 312 个 Node 测试（以最新 `npm run check` 输出为准），其中桌宠评测专项覆盖数据 schema、输入风险、动作策略、输出声明、脱敏复核队列、API 和 UI 契约；另有桌面启动策略、实际服务/模型冒烟、浏览器页面检查和 Python 语料/素材验证。评测设计见 `docs/DESKTOP_PET_LLM_EVALUATION.md`，主界面、桌宠与回复策略的可执行矩阵见 `docs/DESKTOP_PET_TEST_DESIGN.md`。
